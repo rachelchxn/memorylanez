@@ -32,7 +32,7 @@ export default function Home() {
     if (accessToken && providerAccessToken && router) {
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("providerAccessToken", providerAccessToken);
-      router.push("/home");
+      router.push("/faceUpload");
     }
   }, [router]);
 
