@@ -1,10 +1,13 @@
 "use client";
 
 import { supabase } from "@/db";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const [userProfile, setUserProfile] = useState<any>(null);
+
+  const router = useRouter();
   useEffect(() => {
     console.log(localStorage.getItem("providerAccessToken"));
     fetch("/api/get_profile", {
@@ -50,6 +53,7 @@ export default function Home() {
               face_image: data.publicUrl,
               spotify_username: userProfile.id,
             });
+            router.push("/albumUpload");
           }
         }}
       />
