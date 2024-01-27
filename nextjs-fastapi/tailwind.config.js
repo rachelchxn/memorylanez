@@ -18,6 +18,12 @@ module.exports = {
       },
       maxHeight: {
         'carousel': '44rem'
+      },
+      colors: {
+        'photoalbum': '#e3d8cd',
+        'bgbeige': '#d4c9be',
+        'burnt': '#2b2927',
+        'placeholder': '#dbcec1',
       }
     },
   },
