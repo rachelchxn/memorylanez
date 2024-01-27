@@ -25,8 +25,6 @@ export default function Home() {
   }
 
   useEffect(() => {
-    // getUser()
-
     const urlParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = urlParams.get("access_token");
     const providerAccessToken = urlParams.get("provider_token");
