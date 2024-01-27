@@ -16,31 +16,36 @@ export default function Home() {
 
   useEffect(() => {
     console.log("hi!");
-    const queryParams = new URLSearchParams({
-      limit: "3",
-      min_energy: "0.5",
-      max_energy: "0.8",
-      target_valence: "0.7",
-      genre: "pop",
-      track: "2tHiZQ0McWbtuWaax3dh4P",
-    });
 
     const token = localStorage.getItem("providerAccessToken");
 
-    fetch(`/api/recommendations?${queryParams}`, {
+    fetch("/api/recommendations", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`, // Include the token in the Authorization header
       },
       body: JSON.stringify({
-        token: localStorage.getItem("providerAccessToken"),
+        limit: "3",
+        min_energy: "0.5",
+        max_energy: "0.8",
+        target_valence: "0.7",
+        genre: "pop",
+        track: "2tHiZQ0McWbtuWaax3dh4P",
       }),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
         console.log(data);
         setTracks(data.tracks);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
       });
   }, []);
 
@@ -65,7 +70,7 @@ export default function Home() {
       });
   }, []);
 
-  console.log(tracks)
+  console.log(tracks);
 
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
@@ -96,7 +101,9 @@ export default function Home() {
                 return;
               }
 
-              const { data } = supabase.storage.from("face_images").getPublicUrl(userProfile.id);
+              const { data } = supabase.storage
+              .from("face_images")
+              .getPublicUrl(userProfile.id);
               await supabase.from("users").upsert({
                 face_image_path: "face_images" + "/" + userProfile.id,
                 face_image: data.publicUrl,

@@ -29,7 +29,7 @@ export default function Home() {
     const imageUrl =
       "https://wallpapers.com/images/featured/sad-boi-pictures-p17bwxvlc2ci55gw.jpg";
     getVisionDescription(imageUrl).then((description) => {
-      console.log(description);
+      console.log(description.message.content);
     });
   };
 
