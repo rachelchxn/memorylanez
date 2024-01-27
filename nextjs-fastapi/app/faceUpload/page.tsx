@@ -66,7 +66,7 @@ export default function Home() {
       <input
         type="file"
         name="faceImage"
-        onChange={(event) => {
+        onChange={async (event) => {
           if (event.target.files && event.target.files[0] && userProfile) {
             supabase.storage
               .from("face_images")

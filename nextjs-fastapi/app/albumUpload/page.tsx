@@ -23,12 +23,16 @@ export default function Home() {
       });
   }, []);
 
+  console.log(userProfile);
+
   return (
     <main className="w-[430px] h-[932px] flex justify-center items-center bg-slate-100">
       <input
         type="file"
-        name="faceImage"
-        onChange={(event) => {
+        name="userUpload"
+        multiple
+        onChange={async (event) => {
+          console.log("test");
           if (event.target.files && userProfile) {
             supabase.storage
               .from("face_images")

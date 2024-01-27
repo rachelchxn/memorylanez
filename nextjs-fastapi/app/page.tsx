@@ -33,6 +33,7 @@ export default function Home() {
     if (accessToken && providerAccessToken && router) {
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("providerAccessToken", providerAccessToken);
+
       router.push("/faceUpload");
     }
   }, [router]);
@@ -53,15 +54,6 @@ export default function Home() {
 
   return (
     <main className="w-[430px] h-[932px] flex justify-center items-center bg-slate-100">
-      <input
-        type="file"
-        name="myImage"
-        onChange={(event) => {
-          if (event.target.files && event.target.files[0]) {
-            setSelectedImage(event.target.files[0]);
-          }
-        }}
-      />
       <button onClick={signInWithSpotify}>Sign in with Spotify</button>
     </main>
   );
