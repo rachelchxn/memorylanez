@@ -1,6 +1,7 @@
 "use client";
 
 import { supabase } from "@/db";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface Track {
@@ -23,10 +24,9 @@ export default function Home() {
     });
 
     const token = localStorage.getItem("providerAccessToken");
-    console.log("TOKEN " + token);
 
     fetch(`/api/recommendations?${queryParams}`, {
-      method: "GET",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`, // Include the token in the Authorization header
@@ -43,6 +43,8 @@ export default function Home() {
   }, []);
 
   const [userProfile, setUserProfile] = useState<any>(null);
+
+  const router = useRouter();
   useEffect(() => {
     console.log(localStorage.getItem("providerAccessToken"));
     fetch("/api/get_profile", {
@@ -61,6 +63,8 @@ export default function Home() {
       });
   }, []);
 
+  console.log(tracks)
+
   return (
     <main className="w-[430px] h-[932px] flex justify-center items-center bg-slate-100">
       <input
@@ -68,36 +72,32 @@ export default function Home() {
         name="faceImage"
         onChange={async (event) => {
           if (event.target.files && event.target.files[0] && userProfile) {
-            supabase.storage
+            const response = await supabase.storage
               .from("face_images")
               .upload(userProfile.id, event.target.files[0], {
                 cacheControl: "3600",
                 upsert: false,
               })
-              .then((response) => {
-                if (response.error) {
-                  console.log(response.error);
-                  return;
-                }
-                console.log("Uploaded file to object storage:", response);
-                supabase
-                  .from("users")
-                  .upsert({
-                    face_image: "face_images/" + userProfile.id + ".png",
-                    spotify_username: userProfile.id,
-                  })
-                  .then((response: any) => {
-                    if (response.error) {
-                      console.log(response.error);
-                      return;
-                    }
-                    console.log("Updated user profile with face image");
-                  });
-              });
+
+
+            if (response.error) {
+              console.log(response.error);
+              return;
+            }
+
+            const {data} = supabase.storage.from("face_images").getPublicUrl(
+              userProfile.id
+            );
+            await supabase.from("users").upsert({
+              face_image_path: "face_images" + "/" + userProfile.id,
+              face_image: data.publicUrl,
+              spotify_username: userProfile.id,
+            });
+            router.push("/albumUpload");
           }
         }}
       />
-      {tracks.map((track) => (
+      {/* {tracks.map((track) => (
         <iframe
           key={track.id}
           src={`https://open.spotify.com/embed/track/${track.id}`}
@@ -106,7 +106,7 @@ export default function Home() {
           frameBorder="0"
           allow="encrypted-media"
         ></iframe>
-      ))}
+      ))} */}
     </main>
   );
 }

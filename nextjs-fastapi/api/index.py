@@ -8,7 +8,7 @@ import os
 import base64
 import json
 
-# from openai import OpenAI
+from openai import OpenAI
 
 load_dotenv()
 
@@ -58,14 +58,15 @@ def get_token():
     token = json_result["access_token"]
     return token
 
-@app.get("/api/recommendations")
+@app.post("/api/recommendations")
 async def get_recommendations(request: Request):
     body = await request.json()
     token = body.get("token")
+    print("token", token)
     if not token:
         raise HTTPException(status_code=400, detail="Token is missing")
 
-    url = "https://api.spotify.com/v1/recommendations"
+    url = "https://api.spotify.com/v1/recommendations?seed_artists=4NHQUGzhtTLFvgF5SZesLK&seed_genres=classical%2Ccountry&seed_tracks=0c6xIDDpzE81m2q797ordA"
     headers = {
         "Authorization": "Bearer " + token
     }
