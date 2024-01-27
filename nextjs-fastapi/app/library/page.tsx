@@ -22,11 +22,11 @@ export default function Library() {
 
   return (
       <main className="flex justify-center bg-bgbeige min-h-screen">
-        <div className="relative max-w-lg flex-col justify-center w-full h-screen bg-photoalbum px-20 py-10">
+        <div className="relative max-w-lg flex-col justify-center w-full h-screen bg-photoalbum px-10 py-10">
           <div>
             <div className="flex justify-between">
-              <div className="my-3 text-burnt">
-                Logo Placeholder
+              <div className="my-3 text-2xl font-bold font-serif text-burnt">
+                Memory Lanez
               </div>
               {(unreadNotif) ?
               (<Button isIconOnly variant="bordered" className="bg-gray-400 bg-opacity-40">
