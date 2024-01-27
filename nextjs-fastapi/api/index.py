@@ -117,14 +117,15 @@ def create_playlist(user_id: str, token: str, name: str, public: bool = True, de
 async def describe_image(request: Request):
     body = await request.json()
     image_url = body.get("image_url")
+    print(image_url)
 
     if not image_url:
         raise HTTPException(status_code=400, detail="Image URL is missing")
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4-vision-preview",
-            messages=[
+        model="gpt-4-vision-preview",
+        messages=[
                 {
                     "role": "user",
                     "content": "Rate the image on a scale from 0.0 to 1.0 describing the positiveness conveyed by the image. The higher the more positive (e.g. happy, cheerful, euphoric), and the lower the more negative (e.g. sad, depressed, angry). Only answer with the number rating, no other words or punctuation.",
@@ -134,16 +135,14 @@ async def describe_image(request: Request):
                     "content": image_url,
                 },
             ],
-            max_tokens=300,
+            max_tokens=30,
         )
-        return response.choices[0].message["content"]
+        print(response.choices[0])
+        return response.choices[0]
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# token = get_token()
-
-# print(describe_image("https://media.cntraveler.com/photos/60e612ae0a709e97d73d9c60/1:1/w_3840,h_3840,c_limit/Beach%20Vacation%20Packing%20List-2021_GettyImages-1030311160.jpg"))
-# print(describe_image("https://media.cntraveler.com/photos/60e612ae0a709e97d73d9c60/1:1/w_3840,h_3840,c_limit/Beach%20Vacation%20Packing%20List-2021_GettyImages-1030311160.jpg"))
 
 # # print(get_recommendations(1, 0.2, 1, 0.2, 1, "pop", get_token))
 

@@ -27,7 +27,7 @@ export default function Home() {
 
   const handleCreate = () => {
     const imageUrl =
-      "https://media-cldnry.s-nbcnews.com/image/upload/t_fit-760w,f_auto,q_auto:best/newscms/2021_07/2233721/171120-smile-stock-njs-333p.jpg";
+      "https://wallpapers.com/images/featured/sad-boi-pictures-p17bwxvlc2ci55gw.jpg";
     getVisionDescription(imageUrl).then((description) => {
       console.log(description);
     });
