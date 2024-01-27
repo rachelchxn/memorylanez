@@ -25,6 +25,35 @@ export default function Home() {
 
   console.log(userProfile);
 
+  const handleCreate = () => {
+    const imageUrl =
+      "https://media-cldnry.s-nbcnews.com/image/upload/t_fit-760w,f_auto,q_auto:best/newscms/2021_07/2233721/171120-smile-stock-njs-333p.jpg";
+    getVisionDescription(imageUrl).then((description) => {
+      console.log(description);
+    });
+  };
+
+  const getVisionDescription = async (imageUrl: string) => {
+    try {
+      const response = await fetch("/api/vision", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ image_url: imageUrl }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching vision description:", error);
+    }
+  };
+
   return (
     <main className="w-[430px] h-[932px] flex justify-center items-center bg-slate-100">
       <input
@@ -63,6 +92,8 @@ export default function Home() {
           }
         }}
       />
+
+      <button onClick={handleCreate}>Create Album</button>
     </main>
   );
 }

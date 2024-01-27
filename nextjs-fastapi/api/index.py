@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 # from db import supabase
 from dotenv import load_dotenv
 from typing import List
+from openai import OpenAI
 import requests
 import os
 import base64
@@ -11,10 +12,10 @@ import json
 
 load_dotenv()
 
-# client = OpenAI(api_key = os.getenv('OPENAI_API_KEY'))
+client = OpenAI(api_key = os.getenv('OPENAI_API_KEY'))
 
-# client_id = os.getenv("CLIENT_ID")
-# client_secret = os.getenv("CLIENT_SECRET")
+client_id = os.getenv("CLIENT_ID")
+client_secret = os.getenv("CLIENT_SECRET")
 
 app = FastAPI()
 
@@ -97,46 +98,46 @@ def add_tracks_to_playlist(playlist_id: str, token: str, track_uris: List[str]):
 def get_auth_header(token):
     return {"Authorization": "Bearer " + token}
 
-# #     response = requests.get(url, headers=headers, params=params)
-# #     recommendations = response.json()
-# #     return recommendations
+@app.post("/api/create_playlist")
+def create_playlist(user_id: str, token: str, name: str, public: bool = True, description: str = ""):
+    url = f"https://api.spotify.com/v1/users/{user_id}/playlists"
+    headers = get_auth_header(token)
+    payload = {
+        "name": name,
+        "public": public,
+        "description": description
+    }
 
-# # @app.post("/api/create_playlist")
-# # def create_playlist(user_id: str, token: str, name: str, public: bool = True, description: str = ""):
-# #     url = f"https://api.spotify.com/v1/users/{user_id}/playlists"
-# #     headers = get_auth_header(token)
-# #     payload = {
-# #         "name": name,
-# #         "public": public,
-# #         "description": description
-# #     }
-
-# #     response = requests.post(url, headers=headers, json=payload)
-# #     return response.json()
+    response = requests.post(url, headers=headers, json=payload)
+    return response.json()
 
 
-# @app.post("/api/vision")
-# def describe_image(image_url):
-#     response = client.chat.completions.create(
-#     model="gpt-4-vision-preview",
-#     messages=[
-#         {
-#         "role": "user",
-#         "content": [
-#             {"type": "text", "text": "Rate the image on a scale from 0.0 to 1.0 describing the positiveness conveyed by the image. The higher the more positive (e.g. happy, cheerful, euphoric), and the lower themore negative (e.g. sad, depressed, angry). Only answer with the number rating, no other words or punctuation."},
-#             {
-#             "type": "image_url",
-#             "image_url": {
-#                 "url": image_url,
-#             },
-#             },
-#         ],
-#         }
-#     ],
-#     max_tokens=300,
-#     )
+@app.post("/api/vision")
+async def describe_image(request: Request):
+    body = await request.json()
+    image_url = body.get("image_url")
 
-    return(response.choices[0])
+    if not image_url:
+        raise HTTPException(status_code=400, detail="Image URL is missing")
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4-vision-preview",
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Rate the image on a scale from 0.0 to 1.0 describing the positiveness conveyed by the image. The higher the more positive (e.g. happy, cheerful, euphoric), and the lower the more negative (e.g. sad, depressed, angry). Only answer with the number rating, no other words or punctuation.",
+                },
+                {
+                    "role": "user",
+                    "content": image_url,
+                },
+            ],
+            max_tokens=300,
+        )
+        return response.choices[0].message["content"]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # token = get_token()
 
