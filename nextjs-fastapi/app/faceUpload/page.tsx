@@ -113,7 +113,7 @@ export default function Home() {
             }
           }}
         />
-        <p className="text-center m-5">Please upload a photo of yourself.</p>
+        <p className="text-center text-burnt m-5">Please upload a photo of yourself.</p>
         <div className="flex flex-col justify-center items-center gap-2">
           {tracks &&
             tracks.map((track) => (

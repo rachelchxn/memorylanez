@@ -25,6 +25,9 @@ module.exports = {
         'burnt': '#2b2927',
         'placeholder': '#dbcec1',
       },
+      spacing: {
+        'massive': '64rem'
+      }
     },
   },
   darkMode: "class",
