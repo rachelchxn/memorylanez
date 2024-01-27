@@ -77,17 +77,14 @@ export default function Home() {
               .upload(userProfile.id, event.target.files[0], {
                 cacheControl: "3600",
                 upsert: false,
-              })
-
+              });
 
             if (response.error) {
               console.log(response.error);
               return;
             }
 
-            const {data} = supabase.storage.from("face_images").getPublicUrl(
-              userProfile.id
-            );
+            const { data } = supabase.storage.from("face_images").getPublicUrl(userProfile.id);
             await supabase.from("users").upsert({
               face_image_path: "face_images" + "/" + userProfile.id,
               face_image: data.publicUrl,
@@ -97,16 +94,18 @@ export default function Home() {
           }
         }}
       />
-      {/* {tracks.map((track) => (
-        <iframe
-          key={track.id}
-          src={`https://open.spotify.com/embed/track/${track.id}`}
-          width="300"
-          height="80"
-          frameBorder="0"
-          allow="encrypted-media"
-        ></iframe>
-      ))} */}
+      <div className="flex flex-col justify-center items-center gap-2">
+        {tracks &&
+          tracks.map((track) => (
+            <iframe
+              key={track.id}
+              src={`https://open.spotify.com/embed/track/${track.id}`}
+              width="300"
+              height="80"
+              allow="encrypted-media"
+            ></iframe>
+          ))}
+      </div>
     </main>
   );
 }

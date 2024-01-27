@@ -65,11 +65,12 @@ async def get_recommendations(request: Request):
     if not token:
         raise HTTPException(status_code=400, detail="Token is missing")
 
-    url = "https://api.spotify.com/v1/recommendations?seed_artists=4NHQUGzhtTLFvgF5SZesLK&seed_genres=classical%2Ccountry&seed_tracks=0c6xIDDpzE81m2q797ordA"
+    url = "https://api.spotify.com/v1/recommendations?seed_artists=4NHQUGzhtTLFvgF5SZesLK&seed_genres=classical%2Ccountry&seed_tracks=0c6xIDDpzE81m2q797ordA&limit=5"
     headers = {
         "Authorization": "Bearer " + token
     }
     result = requests.get(url, headers=headers)
+    print(result)
     json_result = json.loads(result.content)
     return json_result
 
