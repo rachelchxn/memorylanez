@@ -21,44 +21,47 @@ export default function Library() {
   }
 
   return (
-      <main className="flex justify-center bg-slate-800 min-h-screen">
-        <div className="relative max-w-lg flex-col justify-center w-full h-screen bg-gradient-to-b from-slate-900 from-50% to-emerald-950 to-99% px-20 py-10">
+      <main className="flex justify-center bg-bgbeige min-h-screen">
+        <div className="relative max-w-lg flex-col justify-center w-full h-screen bg-photoalbum px-20 py-10">
           <div>
             <div className="flex justify-between">
-              <div className="my-3 text-white">
+              <div className="my-3 text-burnt">
                 Logo Placeholder
               </div>
               {(unreadNotif) ?
-              (<Button isIconOnly>
-                <MarkChatUnreadIcon className="bg-gray-400 bg-opacity-40"/>
+              (<Button isIconOnly variant="bordered" className="bg-gray-400 bg-opacity-40">
+                <MarkChatUnreadIcon />
               </Button>) : 
-              (<Button isIconOnly className="bg-gray-400 bg-opacity-40">
-                <ChatBubbleIcon />
+              (<Button isIconOnly className="bg-burnt rounded-md">
+                <ChatBubbleIcon className="text-white"/>
               </Button>)
               }
             </div>
-            <div className="flex">
-              <div className="mt-3 mb-6 bg-gray-400 bg-opacity-40 text-white rounded-l-lg py-3 pl-3 pr-1">
+            <div className="flex mt-3 mb-6 rounded-lg border-2 border-burnt">
+              <div className="bg-transparent text-burnt rounded-l-lg py-3 pl-3 pr-1">
                 <SearchIcon />
               </div>
-              <input className="mt-3 mb-6 bg-gray-400 bg-opacity-40 w-full rounded-r-lg py-3 pl-1 pr-3 outline-none text-white"/>
+              <input className="bg-transparent w-full rounded-r-lg py-3 pl-1 pr-3 outline-none text-burnt"/>
             </div>
           </div>
           <ScrollShadow hideScrollBar className="max-h-carousel w-full">
-            <div className="bg-gray-400 bg-opacity-40 h-32 w-full rounded-lg text-center text-white font-bold py-12 mb-3">Placeholder</div>
-            <div className="bg-gray-400 bg-opacity-40 h-32 w-full rounded-lg text-center text-white font-bold py-12 mb-3">Placeholder</div>
-            <div className="bg-gray-400 bg-opacity-40 h-32 w-full rounded-lg text-center text-white font-bold py-12 mb-3">Placeholder</div>  
-            <div className="bg-gray-400 bg-opacity-40 h-32 w-full rounded-lg text-center text-white font-bold py-12 mb-3">Placeholder</div>
-            <div className="bg-gray-400 bg-opacity-40 h-32 w-full rounded-lg text-center text-white font-bold py-12 mb-3">Placeholder</div>
-            <div className="bg-gray-400 bg-opacity-40 h-32 w-full rounded-lg text-center text-white font-bold py-12 mb-3">Placeholder</div>
+            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">Placeholder</div>
+            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">Placeholder</div>
+            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">Placeholder</div>
+            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">Placeholder</div>
+            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">Placeholder</div>
+            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">Placeholder</div>
+            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">Placeholder</div>
+            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">Placeholder</div>
+            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">Placeholder</div>
           </ScrollShadow>
           <div className="flex justify-center">
             <Button 
               startContent={<AddIcon/>} 
-              className="absolute bottom-0 mt-3 mb-10 font-bold bg-gray-400 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-40"
+              className="absolute bottom-0 mt-3 mb-10 tracking-widest font-medium text-md bg-burnt rounded-md"
               onClick={createButtonHandler} 
             >  
-              Create Album
+              CREATE ALBUM
             </Button>
           </div>
         </div>

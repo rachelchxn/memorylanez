@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 # from db import supabase
 from dotenv import load_dotenv
 from typing import List
+from openai import OpenAI
 import requests
 import os
 import base64
@@ -99,51 +100,50 @@ def add_tracks_to_playlist(playlist_id: str, token: str, track_uris: List[str]):
 def get_auth_header(token):
     return {"Authorization": "Bearer " + token}
 
-# #     response = requests.get(url, headers=headers, params=params)
-# #     recommendations = response.json()
-# #     return recommendations
+@app.post("/api/create_playlist")
+def create_playlist(user_id: str, token: str, name: str, public: bool = True, description: str = ""):
+    url = f"https://api.spotify.com/v1/users/{user_id}/playlists"
+    headers = get_auth_header(token)
+    payload = {
+        "name": name,
+        "public": public,
+        "description": description
+    }
 
-# # @app.post("/api/create_playlist")
-# # def create_playlist(user_id: str, token: str, name: str, public: bool = True, description: str = ""):
-# #     url = f"https://api.spotify.com/v1/users/{user_id}/playlists"
-# #     headers = get_auth_header(token)
-# #     payload = {
-# #         "name": name,
-# #         "public": public,
-# #         "description": description
-# #     }
-
-# #     response = requests.post(url, headers=headers, json=payload)
-# #     return response.json()
+    response = requests.post(url, headers=headers, json=payload)
+    return response.json()
 
 
-# @app.post("/api/vision")
-# def describe_image(image_url):
-#     response = client.chat.completions.create(
-#     model="gpt-4-vision-preview",
-#     messages=[
-#         {
-#         "role": "user",
-#         "content": [
-#             {"type": "text", "text": "Rate the image on a scale from 0.0 to 1.0 describing the positiveness conveyed by the image. The higher the more positive (e.g. happy, cheerful, euphoric), and the lower themore negative (e.g. sad, depressed, angry). Only answer with the number rating, no other words or punctuation."},
-#             {
-#             "type": "image_url",
-#             "image_url": {
-#                 "url": image_url,
-#             },
-#             },
-#         ],
-#         }
-#     ],
-#     max_tokens=300,
-#     )
+@app.post("/api/vision")
+async def describe_image(request: Request):
+    body = await request.json()
+    image_url = body.get("image_url")
+    print(image_url)
 
-    return(response.choices[0])
+    if not image_url:
+        raise HTTPException(status_code=400, detail="Image URL is missing")
 
-# token = get_token()
+    try:
+        response = client.chat.completions.create(
+        model="gpt-4-vision-preview",
+        messages=[
+                {
+                    "role": "user",
+                    "content": "Rate the image on a scale from 0.0 to 1.0 describing the positiveness conveyed by the image. The higher the more positive (e.g. happy, cheerful, euphoric), and the lower the more negative (e.g. sad, depressed, angry). Only answer with the number rating, no other words or punctuation.",
+                },
+                {
+                    "role": "user",
+                    "content": image_url,
+                },
+            ],
+            max_tokens=30,
+        )
+        print(response.choices[0])
+        return response.choices[0]
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-# print(describe_image("https://media.cntraveler.com/photos/60e612ae0a709e97d73d9c60/1:1/w_3840,h_3840,c_limit/Beach%20Vacation%20Packing%20List-2021_GettyImages-1030311160.jpg"))
-# print(describe_image("https://media.cntraveler.com/photos/60e612ae0a709e97d73d9c60/1:1/w_3840,h_3840,c_limit/Beach%20Vacation%20Packing%20List-2021_GettyImages-1030311160.jpg"))
 
 # # print(get_recommendations(1, 0.2, 1, 0.2, 1, "pop", get_token))
 
