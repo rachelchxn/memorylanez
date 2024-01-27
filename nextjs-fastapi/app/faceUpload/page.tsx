@@ -4,7 +4,44 @@ import { supabase } from "@/db";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+interface Track {
+  id: string;
+  name: string;
+}
+
 export default function Home() {
+  const [tracks, setTracks] = useState<Track[]>([]);
+
+  useEffect(() => {
+    console.log("hi!");
+    const queryParams = new URLSearchParams({
+      limit: "3",
+      min_energy: "0.5",
+      max_energy: "0.8",
+      target_valence: "0.7",
+      genre: "pop",
+      track: "2tHiZQ0McWbtuWaax3dh4P",
+    });
+
+    const token = localStorage.getItem("providerAccessToken");
+
+    fetch(`/api/recommendations?${queryParams}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+      },
+      body: JSON.stringify({
+        token: localStorage.getItem("providerAccessToken"),
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setTracks(data.tracks);
+      });
+  }, []);
+
   const [userProfile, setUserProfile] = useState<any>(null);
 
   const router = useRouter();
@@ -26,6 +63,8 @@ export default function Home() {
       });
   }, []);
 
+  console.log(tracks)
+
   return (
     <main className="w-[430px] h-[932px] flex justify-center items-center bg-slate-100">
       <input
@@ -38,7 +77,8 @@ export default function Home() {
               .upload(userProfile.id, event.target.files[0], {
                 cacheControl: "3600",
                 upsert: false,
-              });
+              })
+
 
             if (response.error) {
               console.log(response.error);
@@ -57,6 +97,16 @@ export default function Home() {
           }
         }}
       />
+      {/* {tracks.map((track) => (
+        <iframe
+          key={track.id}
+          src={`https://open.spotify.com/embed/track/${track.id}`}
+          width="300"
+          height="80"
+          frameBorder="0"
+          allow="encrypted-media"
+        ></iframe>
+      ))} */}
     </main>
   );
 }
