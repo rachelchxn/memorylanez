@@ -17,6 +17,9 @@ export default function Home() {
   async function signInWithSpotify() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "spotify",
+      options: {
+        scopes: "playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public"
+      },
     });
   }
 
