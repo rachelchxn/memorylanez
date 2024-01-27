@@ -23,11 +23,8 @@ module.exports = {
         'photoalbum': '#e3d8cd',
         'bgbeige': '#d4c9be',
         'burnt': '#2b2927',
-        'placeholder': '#dbcec1',
+        'placeholder': '#ebe5df',
       },
-      spacing: {
-        'massive': '64rem'
-      }
     },
   },
   darkMode: "class",

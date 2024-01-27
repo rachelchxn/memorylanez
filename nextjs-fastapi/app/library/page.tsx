@@ -11,7 +11,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import gradient from "../../public/circle.png"
+import orange from "../../public/circle.png"
+import pink from "../../public/ROSE.png"
 
 export default function Library() {
   const router = useRouter()
@@ -68,8 +69,11 @@ export default function Library() {
               </Button>
             </div>
           </div>
-          <div className="-m-massive -z-10">
-              <Image width={2000} src={gradient} alt=""/>
+          <div className="-m-[64rem] -z-20">
+              <Image width={2000} src={orange} alt=""/>
+          </div>
+          <div className="-my-[115rem] ml-0 -mr-[30rem] -z-10">
+              <Image width={1500} src={pink} alt=""/>
           </div>
         </div>
       </main>
