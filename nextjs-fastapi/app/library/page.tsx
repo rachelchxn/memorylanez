@@ -33,7 +33,7 @@ export default function Library() {
                   Memory Lanez
                 </div>
                 {(unreadNotif) ?
-                (<Button isIconOnly variant="bordered" className="bg-gray-400 bg-opacity-40">
+                (<Button isIconOnly variant="bordered" className="bg-burnt rounded-md">
                   <MarkChatUnreadIcon />
                 </Button>) : 
                 (<Button isIconOnly className="bg-burnt rounded-md">
