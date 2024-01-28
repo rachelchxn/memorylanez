@@ -30,6 +30,7 @@ export default function Album({ params }: { params: { albumId: string } }) {
   const [title, setTitle] = useState<string>("");
   const [currTrack, setCurrTrack] = useState<Track>();
   const [albumLength, setAlbumLength] = useState<number>();
+  const [faceImageUrl, setFaceImageUrl] = useState<null | string>(null);
 
   // const router = useRouter();
   useEffect(() => {
@@ -71,50 +72,68 @@ export default function Album({ params }: { params: { albumId: string } }) {
   }, [params.albumId]);
 
   useEffect(() => {
+    async function updateSlideshow() {
+      const { data, error } = await supabase
+        .from("albums")
+        .select("tracks, images, title")
+        .eq("id", params.albumId)
+        .single();
+      if (!data) {
+        console.log(error);
+        return;
+      }
+      if (count >= 0 && count <= data.tracks.length) {
+        setCurrPhoto(data.images[count]);
+        setCurrTrack(data.tracks[count]);
+      }
+
+      setAlbumLength(data.tracks.length);
+      setTitle(data.title);
+    }
+
+    async function wassupReconnections() {
+      const { data, error } = await supabase
+        .from("user_album")
+        .select(`spotify_username`) //WTF IS GOING ON I HATE SQL
+        .eq("album_id", params.albumId)
+        .maybeSingle();
+      if (!data) {
+        console.log(error);
+        return;
+      }
+
+      const { data: user, error: userError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("spotify_username", data.spotify_username)
+        .single();
+
+      if (!user) {
+        console.log(userError);
+        return;
+      }
+      setFaceImageUrl(user.face_image);
+    }
+
      updateSlideshow()
+     wassupReconnections()
 
-  }, [count])
+  }, [count, params.albumId])
 
-
-  async function updateSlideshow() {
-    const { data, error } = await supabase
-      .from("albums")
-      .select("tracks, images, title")
-      .eq("id", params.albumId)
-      .single();
-    if (!data) {
-      console.log(error);
-      return;
-    }
-    if (count >= 0 && count <= data.tracks.length) {
-      setCurrPhoto(data.images[count]);
-      setCurrTrack(data.tracks[count]);
-    }
-
-    setAlbumLength(data.tracks.length);
-    setTitle(data.title);
-  }
-
-  async function wassupReconnections() {
-    const { data, error } = await supabase
-      .from("user_album")
-      .select(`spotify_username`) //WTF IS GOING ON I HATE SQL
-      .eq("album_id", userProfile )//
-  }
 
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
 
-  console.log(params.albumId);
 
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
       <div className="relative max-w-lg flex-col w-full h-screen bg-photoalbum px-10 py-10 overflow-hidden">
         <div className="relative z-10">
           <h1>{title}</h1>
+          <h1>{faceImageUrl?faceImageUrl : ""}</h1>
           <div className="flex justify-end">
             <Button isIconOnly onPress={onOpen}>
               <ReplyIcon className="text-white" />
-            </Button> 
+            </Button>
             <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
               <ModalContent>
                 {(onClose) => (
@@ -122,7 +141,7 @@ export default function Album({ params }: { params: { albumId: string } }) {
                     <ModalHeader>See Your Reconnections!</ModalHeader>
                     <ModalBody>
                       <ScrollShadow>
-                        
+
                       </ScrollShadow>
                     </ModalBody>
                   </>
