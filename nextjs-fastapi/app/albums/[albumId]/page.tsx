@@ -22,7 +22,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-  ScrollShadow,
+  Spinner,
 } from "@nextui-org/react";
 
 interface Track {
@@ -129,7 +129,15 @@ export default function Album({ params }: { params: { albumId: string } }) {
 
 
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
+  const submitMessage = async e => {
+      e.preventDefault();
+      setIsLoading(true);
+
+      //Message is in "message" upload the message to database and associate with user
+  };
 
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
@@ -147,10 +155,33 @@ export default function Album({ params }: { params: { albumId: string } }) {
               <ModalContent>
                 {(onClose) => (
                   <>
-                    <ModalHeader>See Your Reconnections!</ModalHeader>
+                    <ModalHeader>Reconnect with an old friend!</ModalHeader>
                     <ModalBody>
-                      <ScrollShadow></ScrollShadow>
+                      <div className="flex-col">
+                        {(faceImageUrl) ?
+                        (<img src={faceImageUrl}></img>) :
+                        (<Spinner />)
+                        }
+                        <input 
+                          className="bg-transparent w-full rounded-r-lg py-3 pl-1 pr-3 outline-none text-burnt" 
+                          onChange={e => setMessage(e.currentTarget.value)}
+                        />
+                      </div>
                     </ModalBody>
+                    <ModalFooter>
+                      {(isLoading) ?
+                      (<Button isLoading className="p-6 tracking-widest font-medium text-md bg-burnt rounded-md"
+                      >
+                      SUBMITTING
+                      </Button>):
+                      (<Button 
+                        className="p-6 tracking-widest font-medium text-md bg-burnt rounded-md"
+                        onClick={submitMessage}
+                      >
+                        SUBMIT
+                      </Button>)
+                      }
+                    </ModalFooter>
                   </>
                 )}
               </ModalContent>

@@ -24,6 +24,7 @@ export default function Home() {
   const [images, setImages] = useState<string[]>([]);
   const [title, setTitle] = useState<string>("");
   const [photoAlbum, setPhotoAlbum] = useState<photoAlbum | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const router = useRouter();
 
