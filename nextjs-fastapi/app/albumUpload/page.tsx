@@ -24,7 +24,6 @@ export default function Home() {
   const [images, setImages] = useState<string[]>([]);
   const [title, setTitle] = useState<string>("");
   const [photoAlbum, setPhotoAlbum] = useState<photoAlbum | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
@@ -58,8 +57,6 @@ export default function Home() {
   }, []);
 
   const handleCreate = async () => {
-    setIsLoading(true);
-
     try {
       const { data: completeData, error: completeError } = await supabase
         .from("albums")
@@ -167,9 +164,9 @@ export default function Home() {
         Authorization: `Bearer ${token}`, // Include the token in the Authorization header
       },
       body: JSON.stringify({
-        limit: "3",
-        min_energy: "0.0",
-        max_energy: "1.0",
+        limit: 3,
+        min_energy: 0.0,
+        max_energy: 1.0,
         target_valence: valence,
         genre: "pop",
         track: "2tHiZQ0McWbtuWaax3dh4P",
@@ -259,20 +256,13 @@ export default function Home() {
             }}
           />
 
-          {(isLoading) ?
-          (<Button 
-            isLoading
-            className="text-lg py-6 px-6 w-[100%] mt-20">
-              Creating Album
-            </Button>
-          ) :
-          (<Button
+          <Button
             disabled={images.length == 0}
             className="text-lg py-6 px-6 w-[100%] mt-20 "
             onClick={handleCreate}
           >
             Create Album
-          </Button>)}
+          </Button>
           <div className="flex flex-col justify-center items-center gap-2">
             {tracks &&
               tracks.map((track) => (
