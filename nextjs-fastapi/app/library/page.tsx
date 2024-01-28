@@ -97,6 +97,7 @@ export default function Library() {
           >
             {albums.map((album) => (
               <div
+                key={album}
                 className="w-[100%] p-4 flex gap-4 mb-4 rounded-lg"
                 style={{ backgroundColor: "rgba(245, 245, 220, 0.5)" }}
               >
