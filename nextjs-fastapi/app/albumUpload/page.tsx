@@ -77,37 +77,32 @@ export default function Home() {
         console.log(completeError);
         return;
       }
-
+      // Get vision description and recommendations
       const visionResponse = await getVisionDescription(images);
       const valenceResponse = visionResponse.split(", ");
-      await getRecommendations(parseFloat(valenceResponse[0]));
+      const valence = parseFloat(valenceResponse[0]);
+      await getRecommendations(valence);
 
-      // Update state and wait for the next render to ensure trackIds are updated
-      setTrackIds(tracks.map((track) => track.id));
-      setTitle(valenceResponse[0]);
-      fetch("/api/compare_faces", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: userProfile.id,
-          photo_album_id: photoAlbum?.id,
-        }),
-      });
+      // Set title and track IDs (assuming these are correctly extracted)
+      setTitle(valenceResponse[1]);
+      const newTrackIds = tracks.map((track) => track.id);
+      setTrackIds(newTrackIds);
+
+      // Upload track IDs - this should be handled after state updates
+      // Either call uploadTrackIds directly here or use useEffect to wait for state updates
+      uploadTrackIds(newTrackIds, valenceResponse[1]);
     } catch (error) {
       console.error("Error in processing: ", error);
-      return; // Early exit on error
     }
-
-    // Use useEffect to respond to trackIds change
   };
 
   useEffect(() => {
-    if (trackIds.length > 0) {
+    if (trackIds.length > 0 && title) {
+      console.log("uploading tracks!!!!!!!!!!");
+
       uploadTrackIds(trackIds, title);
     }
-  }, [trackIds, title]); // Depend on trackIds
+  }, [trackIds, title]);
 
   const uploadTrackIds = async (trackIds: string[], title: string) => {
     try {

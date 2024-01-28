@@ -48,7 +48,6 @@ export default function Album({ params }: { params: { albumId: string } }) {
       });
   }, []);
 
-
   useEffect(() => {
     async function getTracks() {
       const { data, error } = await supabase
@@ -69,10 +68,8 @@ export default function Album({ params }: { params: { albumId: string } }) {
   }, [params.albumId]);
 
   useEffect(() => {
-     updateSlideshow()
-
-  }, [count])
-
+    updateSlideshow();
+  }, [count]);
 
   async function updateSlideshow() {
     const { data, error } = await supabase
