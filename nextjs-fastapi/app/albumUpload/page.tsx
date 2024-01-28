@@ -81,7 +81,7 @@ export default function Home() {
       await getRecommendations(parseFloat(valenceResponse[0]));
 
       // Update state and wait for the next render to ensure trackIds are updated
-      setTitle(valenceResponse[0]);
+      setTitle(valenceResponse[1]);
       fetch("/api/compare_faces", {
         method: "POST",
         headers: {
@@ -101,7 +101,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-     if (!photoAlbum) return;
+    if (!photoAlbum) return;
     const uploadTrackIds = async (trackIds: string[], title: string) => {
       try {
         const { data, error } = await supabase
@@ -126,7 +126,7 @@ export default function Home() {
       }
     };
     if (tracks.length > 0) {
-      const trackIds = tracks.map(track => track.id)
+      const trackIds = tracks.map((track) => track.id);
       uploadTrackIds(trackIds, title);
     }
   }, [tracks, title, router, userProfile]); // Depend on trackIds

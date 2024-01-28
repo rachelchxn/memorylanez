@@ -14,8 +14,16 @@ import Image from "next/image";
 import { Button } from "@nextui-org/react";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import ReplyIcon from '@mui/icons-material/Reply';
-import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, ScrollShadow} from "@nextui-org/react";
+import ReplyIcon from "@mui/icons-material/Reply";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  ScrollShadow,
+} from "@nextui-org/react";
 
 interface Track {
   id: string;
@@ -50,7 +58,6 @@ export default function Album({ params }: { params: { albumId: string } }) {
       });
   }, []);
 
-
   useEffect(() => {
     async function getTracks() {
       const { data, error } = await supabase
@@ -71,10 +78,8 @@ export default function Album({ params }: { params: { albumId: string } }) {
   }, [params.albumId]);
 
   useEffect(() => {
-     updateSlideshow()
-
-  }, [count])
-
+    updateSlideshow();
+  }, [count]);
 
   async function updateSlideshow() {
     const { data, error } = await supabase
@@ -99,10 +104,10 @@ export default function Album({ params }: { params: { albumId: string } }) {
     const { data, error } = await supabase
       .from("user_album")
       .select(`spotify_username, albums(image)`) //WTF IS GOING ON I HATE SQL
-      .eq("album_id", userProfile )//
+      .eq("album_id", userProfile); //
   }
 
-  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   console.log(params.albumId);
 
@@ -110,24 +115,24 @@ export default function Album({ params }: { params: { albumId: string } }) {
     <main className="flex justify-center bg-bgbeige min-h-screen">
       <div className="relative max-w-lg flex-col w-full h-screen bg-photoalbum px-10 py-10 overflow-hidden">
         <div className="relative z-10">
-          <h1>{title}</h1>
-          <div className="flex justify-end">
+          <div className="flex justify-between">
+            <h1 className="text-black text-lg align-center mb-8">{title}</h1>
+
             <Button isIconOnly onPress={onOpen}>
               <ReplyIcon className="text-white" />
-            </Button> 
+            </Button>
+          </div>
+          <div className="flex justify-end">
             <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
               <ModalContent>
                 {(onClose) => (
                   <>
                     <ModalHeader>See Your Reconnections!</ModalHeader>
                     <ModalBody>
-                      <ScrollShadow>
-                        
-                      </ScrollShadow>
+                      <ScrollShadow></ScrollShadow>
                     </ModalBody>
                   </>
-                )
-                }
+                )}
               </ModalContent>
             </Modal>
           </div>
