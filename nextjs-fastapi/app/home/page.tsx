@@ -2,14 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-interface Track {
-  id: string;
-  name: string;
-}
-
 export default function Home() {
-  const [tracks, setTracks] = useState<Track[]>([]);
-
   // useEffect(() => {
   //   if (localStorage.getItem("providerAccessToken")) {
   //     const queryParams = new URLSearchParams({
