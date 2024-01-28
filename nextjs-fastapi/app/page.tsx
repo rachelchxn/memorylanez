@@ -52,7 +52,8 @@ export default function Home() {
         .single()
 
 
-      if (test.data.face_image){
+
+      if (test.data && test.data.face_image){
         router.push("/albumUpload")
       } else{
         router.push("/faceUpload")

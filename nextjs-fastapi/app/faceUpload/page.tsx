@@ -76,8 +76,8 @@ export default function Home() {
                 .getPublicUrl(userProfile.id);
               console.log(data);
               await supabase.from("users").upsert({
-                face_image_path: "user_faces/files/" + userProfile.id,
-                face_image: data.publicUrl,
+                face_image_path: `user_faces/files/${userProfile.id}`,
+                face_image: data.publicUrl.replace("user_faces/", "user_faces/files/"),
                 spotify_username: userProfile.id,
               });
               router.push("/albumUpload");

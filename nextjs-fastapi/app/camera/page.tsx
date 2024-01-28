@@ -89,7 +89,7 @@ export default function Camera() {
     const upsertResponse = await supabase.from("users").upsert({
       spotify_username: userProfile.id, // Assuming 'id' is the primary key of the 'users' table
       face_image_path: `user_faces/files/${userProfile.id}`,
-      face_image: data.publicUrl,
+      face_image: data.publicUrl.replace("user_faces/", "user_faces/files/")
     });
 
     // Check for an error in the upsert response

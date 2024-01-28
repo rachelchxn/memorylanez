@@ -10,7 +10,6 @@ import React from "react";
 
 import orange from "../../../public/circle.png";
 import pink from "../../../public/ROSE.png";
-import Image from "next/image";
 import { Button } from "@nextui-org/react";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -24,6 +23,7 @@ import {
   useDisclosure,
   Spinner,
 } from "@nextui-org/react";
+import Image from "next/image";
 
 interface Track {
   id: string;
@@ -39,6 +39,7 @@ export default function Album({ params }: { params: { albumId: string } }) {
   const [currTrack, setCurrTrack] = useState<Track>();
   const [albumLength, setAlbumLength] = useState<number>();
   const [faceImageUrl, setFaceImageUrl] = useState<null | string>(null);
+  const [sendingUserProfile, setSendingUserProfile] = useState<null | any>(null);
 
   // const router = useRouter();
   useEffect(() => {
@@ -109,17 +110,23 @@ export default function Album({ params }: { params: { albumId: string } }) {
         return;
       }
 
+      console.log(data)
+
       const { data: user, error: userError } = await supabase
         .from("users")
         .select("*")
         .eq("spotify_username", data.spotify_username)
         .single();
 
+      setSendingUserProfile(user)
+
+      console.log(user)
       if (!user) {
         console.log(userError);
         return;
       }
       setFaceImageUrl(user.face_image);
+
     }
 
      updateSlideshow()
@@ -128,16 +135,30 @@ export default function Album({ params }: { params: { albumId: string } }) {
   }, [count, params.albumId])
 
 
-  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const {isOpen, onOpen, onOpenChange, onClose} = useDisclosure();
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const submitMessage = async e => {
+  const submitMessage = async (e: any) => {
       e.preventDefault();
+      if (!sendingUserProfile) return;
       setIsLoading(true);
 
-      //Message is in "message" upload the message to database and associate with user
+      console.log(userProfile)
+      await supabase.from("invites").insert({
+        link: `http://localhost:3000/albums/${params.albumId}`,
+        message: message,
+        spotify_username_to: sendingUserProfile.spotify_username,
+        spotify_username_from: userProfile.display_name
+      });
+
+      onClose()
+
+      setIsLoading(false)
   };
+
+  console.log(faceImageUrl)
+
 
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
@@ -151,7 +172,7 @@ export default function Album({ params }: { params: { albumId: string } }) {
             </Button>
           </div>
           <div className="flex justify-end">
-            <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+            <Modal className="light" isOpen={isOpen} onOpenChange={onOpenChange}>
               <ModalContent>
                 {(onClose) => (
                   <>
@@ -159,11 +180,11 @@ export default function Album({ params }: { params: { albumId: string } }) {
                     <ModalBody>
                       <div className="flex-col">
                         {(faceImageUrl) ?
-                        (<img src={faceImageUrl}></img>) :
+                        (<img src={faceImageUrl} alt="other"></img>) :
                         (<Spinner />)
                         }
-                        <input 
-                          className="bg-transparent w-full rounded-r-lg py-3 pl-1 pr-3 outline-none text-burnt" 
+                        <input
+                          className="bg-transparent w-full rounded-r-lg py-3 pl-1 pr-3 outline-none text-burnt"
                           onChange={e => setMessage(e.currentTarget.value)}
                         />
                       </div>
@@ -174,7 +195,7 @@ export default function Album({ params }: { params: { albumId: string } }) {
                       >
                       SUBMITTING
                       </Button>):
-                      (<Button 
+                      (<Button
                         className="p-6 tracking-widest font-medium text-md bg-burnt rounded-md"
                         onClick={submitMessage}
                       >
