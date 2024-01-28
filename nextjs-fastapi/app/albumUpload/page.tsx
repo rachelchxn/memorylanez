@@ -2,7 +2,7 @@
 
 import { supabase } from "@/db";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { AddAlarmTwoTone } from "@mui/icons-material";
 
 interface Track {
@@ -17,6 +17,8 @@ export default function Home() {
   const [trackIds, setTrackIds] = useState<string[]>([]);
 
   const router = useRouter();
+
+  console.log(userProfile)
 
   useEffect(() => {
     console.log(localStorage.getItem("providerAccessToken"));
