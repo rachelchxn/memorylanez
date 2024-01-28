@@ -14,17 +14,16 @@ interface Track {
   name: string;
 }
 
-
 interface photoAlbum {
-  id: number
+  id: number;
 }
 
 export default function Home() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [images, setImages] = useState<string[]>([]);
+  const [title, setTitle] = useState<string>("");
   const [trackIds, setTrackIds] = useState<string[]>([]);
-  const [title, setTitle] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean[]>([]);
   const [photoAlbum, setPhotoAlbum] = useState<photoAlbum | null>(null);
 
@@ -40,12 +39,11 @@ export default function Home() {
         body: JSON.stringify({
           token: localStorage.getItem("providerAccessToken"),
         }),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
-      setUserProfile(data)
-
+      setUserProfile(data);
 
       const { data: albumData, error } = await supabase
         .from("albums")
@@ -62,7 +60,6 @@ export default function Home() {
 
   const handleCreate = async () => {
     try {
-
       const { data: completeData, error: completeError } = await supabase
         .from("albums")
         .upsert(
@@ -76,9 +73,9 @@ export default function Home() {
         .select()
         .single();
 
-      if (completeError){
-        console.log(completeError)
-        return
+      if (completeError) {
+        console.log(completeError);
+        return;
       }
 
       const visionResponse = await getVisionDescription(images);
@@ -99,18 +96,19 @@ export default function Home() {
       });
     } catch (error) {
       console.error("Error in processing: ", error);
-      return;
+      return; // Early exit on error
     }
+
+    // Use useEffect to respond to trackIds change
   };
 
   useEffect(() => {
     if (trackIds.length > 0) {
-      console.log("uploading!");
-      uploadTrackIds(trackIds);
+      uploadTrackIds(trackIds, title);
     }
-  }, [trackIds]); // Depend on trackIds
+  }, [trackIds, title]); // Depend on trackIds
 
-  const uploadTrackIds = async (trackIds: string[]) => {
+  const uploadTrackIds = async (trackIds: string[], title: string) => {
     try {
       const { data, error } = await supabase
         .from("albums")
@@ -118,17 +116,16 @@ export default function Home() {
           {
             owner: userProfile.id,
             tracks: trackIds,
+            title: title,
           },
           {}
         )
         .select()
         .single();
 
-      if (data && data.id) {
-        router.push("/albums/" + data.id);
-      } else {
-        console.log("Upsert operation completed, but no data was returned");
-      }
+      if (error) throw error;
+
+      router.push("/album/" + data.id);
     } catch (error) {
       console.error("Error in uploading track IDs: ", error);
     }
@@ -190,7 +187,7 @@ export default function Home() {
       });
   };
 
-  console.log("photoAlbum", photoAlbum)
+  console.log("photoAlbum", photoAlbum);
   console.log("userProfile", userProfile);
 
   return (
@@ -215,9 +212,18 @@ export default function Home() {
             multiple
             onChange={async (event) => {
               if (event.target.files && userProfile) {
+                const { data, error } = await supabase
+                  .from("albums")
+                  .upsert(
+                    {
+                      owner: userProfile.id,
+                    },
+                    {}
+                  )
+                  .select()
+                  .single();
                 let images_uploaded = [] as string[];
                 let newImages = [];
-
                 for (let i = 0; i < event.target.files.length; i++) {
                   const file = event.target.files[i];
                   const res = await supabase.storage
@@ -238,6 +244,23 @@ export default function Home() {
                   newImages.push(pubUrlData.publicUrl);
                 }
                 setImages([...images, ...newImages]);
+                console.log(images);
+                const { data: completeData, error: completeError } =
+                  await supabase
+                    .from("albums")
+                    .upsert(
+                      {
+                        images: images_uploaded,
+                        owner: userProfile.id,
+                      },
+                      {}
+                    )
+                    .select()
+                    .single();
+                if (completeError) {
+                  console.log(completeError);
+                  return;
+                }
               }
             }}
           />
