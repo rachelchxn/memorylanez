@@ -89,7 +89,11 @@ export default function Library() {
                   <MarkChatUnreadIcon />
                 </Button>
               ) : (
-                <Button isIconOnly className="bg-burnt rounded-md">
+                <Button
+                  isIconOnly
+                  onClick={() => router.push("/messages")}
+                  className="bg-burnt rounded-md"
+                >
                   <ChatBubbleIcon className="text-white" />
                 </Button>
               )}

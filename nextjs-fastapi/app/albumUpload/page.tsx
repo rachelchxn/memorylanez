@@ -263,7 +263,7 @@ export default function Home() {
           >
             Create Album
           </Button>
-          <div className="flex flex-col justify-center items-center gap-2">
+          <div className="flex flex-col justify-center items-center gap-1">
             {tracks &&
               tracks.map((track) => (
                 <iframe

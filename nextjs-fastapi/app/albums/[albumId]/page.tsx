@@ -276,7 +276,7 @@ export default function Album({ params }: { params: { albumId: string } }) {
         </div>
         <div className="relative z-10">
           <div className="fixed bottom-10">
-            <div className="flex justify-between items-center w-[115%]">
+            <div className="flex justify-between items-center w-[105%]">
               {count == 0 ? (
                 <div>
                   <Button isIconOnly className="bg-burnt rounded-md">

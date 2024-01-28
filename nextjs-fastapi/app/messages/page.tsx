@@ -24,7 +24,6 @@ export default function Library() {
   const [inviteData, setInviteData] = useState<any>(null);
 
   useEffect(() => {
-
     fetch("/api/get_profile", {
       method: "POST",
       headers: {
@@ -50,7 +49,7 @@ export default function Library() {
         .eq("spotify_username_to", userProfile.display_name)
         .maybeSingle();
 
-      setInviteData(data)
+      setInviteData(data);
 
       if (!data) {
         console.log(error);
@@ -73,9 +72,8 @@ export default function Library() {
       setFaceImageUrl(user.face_image);
     }
 
-    wassupReconnections()
-
-  }, [userProfile, setFaceImageUrl])
+    wassupReconnections();
+  }, [userProfile, setFaceImageUrl]);
 
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
@@ -84,24 +82,24 @@ export default function Library() {
           <div>
             <div className="relative flex justify-between">
               <div className="my-3 text-2xl font-bold font-serif text-burnt">
-                Memory Lanez
+                Momentune
               </div>
             </div>
           </div>
-              <Link href={inviteData.link}>
-                <div
-                  className="w-[100%] p-4 flex gap-4 mb-4 rounded-lg"
-                  style={{ backgroundColor: "rgba(245, 245, 220, 0.5)" }}
-                >
-                  <img
-                    src={faceImageUrl}
-                    className="w-24 h-24 object-cover rounded-sm"
-                  />
-                  <p className="text-burnt">
-                    {inviteData.message}
-                  </p>
-                </div>
-              </Link>
+          {inviteData && (
+            <Link href={inviteData.link}>
+              <div
+                className="w-[100%] p-4 flex gap-4 mb-4 rounded-lg"
+                style={{ backgroundColor: "rgba(245, 245, 220, 0.5)" }}
+              >
+                <img
+                  src={faceImageUrl}
+                  className="w-24 h-24 object-cover rounded-sm"
+                />
+                <p className="text-burnt">{inviteData.message}</p>
+              </div>
+            </Link>
+          )}
         </div>
         <div className="-m-[64rem] -z-20">
           <Image width={2000} src={orange} alt="" />
