@@ -98,7 +98,7 @@ export default function Album({ params }: { params: { albumId: string } }) {
   async function wassupReconnections() {
     const { data, error } = await supabase
       .from("user_album")
-      .select(`spotify_username, albums(image)`) //WTF IS GOING ON I HATE SQL
+      .select(`spotify_username`) //WTF IS GOING ON I HATE SQL
       .eq("album_id", userProfile )//
   }
 
