@@ -3,7 +3,11 @@
 import { supabase } from "@/db";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+<<<<<<< HEAD
 import { Button } from "@nextui-org/react";
+=======
+import { AddAlarmTwoTone } from "@mui/icons-material";
+>>>>>>> 730c77ba61f5b0a410185ae1d9a7b3022a7938ad
 
 interface Track {
   id: string;
@@ -18,6 +22,8 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean[]>([]);
 
   const router = useRouter();
+
+  console.log(userProfile)
 
   useEffect(() => {
     console.log(localStorage.getItem("providerAccessToken"));

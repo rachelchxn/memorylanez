@@ -46,6 +46,7 @@ export default function Camera() {
   };
 
   const capture = useCallback(() => {
+    console.log(webcamRef.current, userProfile);
     if (webcamRef.current && userProfile) {
       const imageSrc = webcamRef.current.getScreenshot();
       setUserPhoto(imageSrc);
@@ -54,25 +55,21 @@ export default function Camera() {
         .then((blob) => {
           // Create a file from the blob
           const file = new File([blob], `file.jpg`, { type: "image/jpeg" });
-          uploadImage(supabase, userProfile, file); // Call uploadImage function here
+          uploadImage(userProfile, file); // Call uploadImage function here
         });
     }
-  }, [Webcam]);
+  }, [userProfile]);
 
   interface UserProfile {
     id: string;
     // other user profile fields
   }
 
-  const uploadImage = async (
-    supabase: any,
-    userProfile: { id: any },
-    file: any
-  ) => {
+  const uploadImage = async (userProfile: { id: any }, file: any) => {
     console.log("TRYING TO SEND TO DB");
     const uploadResponse = await supabase.storage
-      .from("face_images")
-      .upload(`user_faces/${userProfile.id}`, file, {
+      .from("user_faces")
+      .upload(`files/${userProfile.id}`, file, {
         cacheControl: "3600",
         upsert: false,
       });
@@ -85,15 +82,14 @@ export default function Camera() {
 
     // Retrieve the public URL of the uploaded image
     const { data } = supabase.storage
-      .from("face_images")
-      .getPublicUrl(`user_faces/${userProfile.id}`);
+      .from("user_faces")
+      .getPublicUrl(`files/${userProfile.id}`);
 
     // Update the user's profile with the new image data
     const upsertResponse = await supabase.from("users").upsert({
-      id: userProfile.id, // Assuming 'id' is the primary key of the 'users' table
-      face_image_path: `user_faces/${userProfile.id}`,
+      spotify_username: userProfile.id, // Assuming 'id' is the primary key of the 'users' table
+      face_image_path: `user_faces/files/${userProfile.id}`,
       face_image: data.publicUrl,
-      spotify_username: userProfile.id, // This should match your database schema
     });
 
     // Check for an error in the upsert response
@@ -101,6 +97,8 @@ export default function Camera() {
       console.error("Error updating user profile:", upsertResponse.error);
       return;
     }
+
+    router.push("/albumUpload");
   };
 
   return (
