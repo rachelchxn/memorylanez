@@ -45,10 +45,14 @@ def get_photo_album_images(user_id: str, photo_album_id: int) -> List[str]:
     return album_images
 
 
-def get_faces():
+def get_faces(user_id):
     faces_names = supabase.storage.from_("user_faces").list("files")
     face_images = []
-    for photo_name in faces_names:
+    print("og", faces_names)
+    print(user_id)
+    filtered_faces_names = [f for f in faces_names if f["name"] != user_id]
+    print("filtered", filtered_faces_names)
+    for photo_name in filtered_faces_names:
         if photo_name["name"] == ".emptyFolderPlaceholder":
             continue
         photo_path = "files/" + photo_name["name"]
@@ -72,12 +76,9 @@ async def compare_faces(request: Request):
     photo_album_id = body.get("photo_album_id")
     user_id = body.get("user_id")
 
-    print(user_id, photo_album_id)
     album_photos = get_photo_album_images(user_id, photo_album_id)
-    print("got album photos", album_photos)
 
-    faces = get_faces()
-    print("got faces", faces)
+    faces = get_faces(user_id)
 
 
     if len(faces) == 0 or len(album_photos) == 0:
@@ -106,8 +107,6 @@ async def compare_faces(request: Request):
                 name = face_encodings[first_match_index][0]
                 names.append(name)
 
-    print(names)
-    print(type(photo_album_id), type(name))
     for name in names:
         data = supabase.from_("user_album").upsert({"spotify_username": name, "album_id": photo_album_id}).execute()
         print(data)
