@@ -11,9 +11,10 @@ import React from "react";
 import orange from "../../../public/circle.png";
 import pink from "../../../public/ROSE.png";
 import Image from "next/image";
-import { Button } from "@nextui-org/react";
+import { Button, Link, ScrollShadow } from "@nextui-org/react";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import { Reply } from "@mui/icons-material";
 
 interface Track {
   id: string;
@@ -24,10 +25,35 @@ export default function Album({ params }: { params: { albumId: string } }) {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [count, setCount] = useState<number>(0);
-  const [currPhoto, setCurrPhoto] = useState<string>("");
+  const [images, setImages] = useState<string[]>([]);
   const [title, setTitle] = useState<string>("");
   const [currTrack, setCurrTrack] = useState<Track>();
   const [albumLength, setAlbumLength] = useState<number>();
+  const [faceImageUrl, setFaceImageUrl] = useState<null | string>(null);
+  const scrollIntervalRef = useRef(null);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null); // Adjust the element type if needed
+
+  const startAutoScroll = () => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+
+      setInterval(() => {
+        if (
+          container.scrollTop + container.clientHeight >=
+          container.scrollHeight
+        ) {
+          container.scrollTop = 0;
+        } else {
+          container.scrollTop += 1; // Adjust the scroll speed if needed
+        }
+      }, 20); // Adjust the interval if needed
+    }
+  };
+
+  useEffect(() => {
+    startAutoScroll();
+  }, []);
 
   // const router = useRouter();
   useEffect(() => {
@@ -47,7 +73,6 @@ export default function Album({ params }: { params: { albumId: string } }) {
         setUserProfile(data);
       });
   }, []);
-
 
   useEffect(() => {
     async function getTracks() {
@@ -69,10 +94,8 @@ export default function Album({ params }: { params: { albumId: string } }) {
   }, [params.albumId]);
 
   useEffect(() => {
-     updateSlideshow()
-
-  }, [count])
-
+    updateSlideshow();
+  }, [count]);
 
   async function updateSlideshow() {
     const { data, error } = await supabase
@@ -85,7 +108,7 @@ export default function Album({ params }: { params: { albumId: string } }) {
       return;
     }
     if (count >= 0 && count <= data.tracks.length) {
-      setCurrPhoto(data.images[count]);
+      setImages(data.images);
       setCurrTrack(data.tracks[count]);
     }
 
@@ -97,24 +120,53 @@ export default function Album({ params }: { params: { albumId: string } }) {
 
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
-      <div className="relative max-w-lg flex-col w-full h-screen bg-photoalbum px-10 py-10 overflow-hidden">
+      <div className="relative max-w-lg flex-col w-full h-screen bg-photoalbum px-8 py-8 overflow-hidden">
         <div className="relative z-10">
           <h1>{title}</h1>
           <div className="flex justify-center">
-            <img src={currPhoto} alt="" className="w-[100%] bottom-[auto]" />
+            <div
+              className="absolute w-[100%] z-50 top-0 px-4 pt-10 pb-20 "
+              style={{
+                background: "linear-gradient(to bottom, #e3d8cd, transparent)",
+              }}
+            >
+              <Link href="/library">Back</Link>
+              <div className="flex justify-between items-baseline">
+                <h1 className="text-black text-lg align-center mb-4">
+                  {title}
+                </h1>
+                <Button isIconOnly>
+                  <Reply className="text-white" />
+                </Button>
+              </div>
+            </div>
+            <ScrollShadow
+              hideScrollBar
+              className="relative mt-8 h-[80vh] w-full"
+              ref={scrollContainerRef}
+            >
+              {images.map((url, index) => (
+                <img
+                  key={index}
+                  src={url}
+                  alt={`Image ${index}`}
+                  className="w-full mb-8"
+                />
+              ))}
+            </ScrollShadow>
           </div>
         </div>
         <div className="relative z-10">
           <div className="fixed bottom-10">
-            <div className="flex justify-center">
+            <div className="flex justify-between items-center w-[115%]">
               {count == 0 ? (
-                <div className="mt-16 mx-3">
+                <div>
                   <Button isIconOnly className="bg-burnt rounded-md">
                     <ArrowBackIosNewIcon className="text-gray-500" />
                   </Button>
                 </div>
               ) : (
-                <div className="mt-16 mx-3">
+                <div>
                   <Button
                     onClick={() => setCount(count - 1)}
                     isIconOnly
@@ -124,7 +176,7 @@ export default function Album({ params }: { params: { albumId: string } }) {
                   </Button>
                 </div>
               )}
-              <div className="mt-10 mx-3">
+              <div>
                 <iframe
                   src={`https://open.spotify.com/embed/track/${currTrack}`}
                   allow="encrypted-media"
@@ -134,13 +186,13 @@ export default function Album({ params }: { params: { albumId: string } }) {
                 ></iframe>
               </div>
               {count == albumLength ? (
-                <div className="mt-16">
+                <div>
                   <Button isIconOnly className="bg-burnt rounded-md">
                     <ArrowForwardIosIcon className="text-white" />
                   </Button>
                 </div>
               ) : (
-                <div className="mt-16">
+                <div>
                   <Button
                     onClick={() => setCount(count + 1)}
                     isIconOnly

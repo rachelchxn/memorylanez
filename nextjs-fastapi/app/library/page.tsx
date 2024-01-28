@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, ScrollShadow } from "@nextui-org/react";
+import { Button, Link, ScrollShadow } from "@nextui-org/react";
 import ChatBubbleIcon from "@mui/icons-material/ChatBubble";
 import MarkChatUnreadIcon from "@mui/icons-material/MarkChatUnread";
 import SearchIcon from "@mui/icons-material/Search";
@@ -105,17 +105,19 @@ export default function Library() {
             className="relative max-h-carousel w-full"
           >
             {albums.map((album) => (
-              <div
-                key={album}
-                className="w-[100%] p-4 flex gap-4 mb-4 rounded-lg"
-                style={{ backgroundColor: "rgba(245, 245, 220, 0.5)" }}
-              >
-                <img
-                  src={album.images[0]}
-                  className="w-24 h-24 object-cover rounded-sm"
-                />
-                <h2 className="text-black">{album.title}</h2>
-              </div>
+              <Link href={`/albums/${album.id}`} className="w-[100%]">
+                <div
+                  key={album}
+                  className="w-[100%] p-4 flex gap-4 mb-4 rounded-lg"
+                  style={{ backgroundColor: "rgba(245, 245, 220, 0.5)" }}
+                >
+                  <img
+                    src={album.images[0]}
+                    className="w-24 h-24 object-cover rounded-sm"
+                  />
+                  <h2 className="text-black">{album.title}</h2>
+                </div>
+              </Link>
             ))}
           </ScrollShadow>
         </div>
