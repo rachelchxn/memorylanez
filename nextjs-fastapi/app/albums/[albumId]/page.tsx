@@ -180,28 +180,32 @@ export default function Album({ params }: { params: { albumId: string } }) {
                     <ModalBody>
                       <div className="flex-col">
                         {(faceImageUrl) ?
-                        (<img src={faceImageUrl} alt="other"></img>) :
-                        (<Spinner />)
+                        (<div className="flex justify-center"><img src={faceImageUrl} alt="other"></img></div>) :
+                        (<div className="flex justify-center"><Spinner /></div>)
                         }
-                        <input
-                          className="bg-transparent w-full rounded-r-lg py-3 pl-1 pr-3 outline-none text-burnt"
-                          onChange={e => setMessage(e.currentTarget.value)}
-                        />
+                        <div className="flex justify-center">
+                          <input
+                            className="bg-transparent w-full rounded-r-lg py-3 pl-1 pr-3 outline-2 outline-burnt text-burnt"
+                            onChange={e => setMessage(e.currentTarget.value)}
+                          />
+                        </div>
                       </div>
                     </ModalBody>
                     <ModalFooter>
-                      {(isLoading) ?
-                      (<Button isLoading className="p-6 tracking-widest font-medium text-md bg-burnt rounded-md"
-                      >
-                      SUBMITTING
-                      </Button>):
-                      (<Button
-                        className="p-6 tracking-widest font-medium text-md bg-burnt rounded-md"
-                        onClick={submitMessage}
-                      >
-                        SUBMIT
-                      </Button>)
-                      }
+                      <div className="flex justify-center">
+                        {(isLoading) ?
+                        (<Button isLoading className="p-6 tracking-widest font-medium text-white text-md bg-burnt rounded-md"
+                        >
+                        SUBMITTING
+                        </Button>):
+                        (<Button
+                          className="p-6 tracking-widest font-medium text-md text-white bg-burnt rounded-md"
+                          onClick={submitMessage}
+                        >
+                          SUBMIT
+                        </Button>)
+                        }
+                      </div>
                     </ModalFooter>
                   </>
                 )}
