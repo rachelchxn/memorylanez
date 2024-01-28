@@ -55,13 +55,16 @@ export default function Home() {
           name="faceImage"
           className="relative z-10 bg-burnt text-white outline-none p-3 file:mr-5 w-full font-bold rounded-md"
           onChange={async (event) => {
+            console.log("test");
             if (event.target.files && event.target.files[0] && userProfile) {
               const response = await supabase.storage
-                .from("face_images")
+                .from("user_faces")
                 .upload(userProfile.id, event.target.files[0], {
                   cacheControl: "3600",
                   upsert: false,
                 });
+
+              console.log(response);
 
               if (response.error) {
                 console.log(response.error);
@@ -69,8 +72,9 @@ export default function Home() {
               }
 
               const { data } = supabase.storage
-                .from("face_images")
+                .from("user_faces")
                 .getPublicUrl(userProfile.id);
+              console.log(data);
               await supabase.from("users").upsert({
                 face_image_path: "user_faces" + "/" + userProfile.id,
                 face_image: data.publicUrl,
