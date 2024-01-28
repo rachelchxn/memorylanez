@@ -48,14 +48,23 @@ export default function Library() {
 
   const getAlbums = async (userID: string) => {
     try {
-      const { data, error } = await supabase
-        .from("albums")
-        .select("*")
-        .eq("owner", userID);
+      // Query the 'albums' table
+      let query = supabase.from("albums").select("*").eq("owner", userID);
+      // Executing the query
+      const { data, error } = await query;
 
-      if (error) throw error;
-      setAlbums(data);
-      console.log(data);
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        // Filter albums with non-empty images array
+        const filteredAlbums = data.filter(
+          (album) => album.images && album.images.length > 0
+        );
+        setAlbums(filteredAlbums);
+        console.log(data);
+      }
     } catch (error) {
       console.error("Error fetching albums:", error);
     }
@@ -113,7 +122,7 @@ export default function Library() {
         <div className="flex justify-center">
           <Button
             startContent={<AddIcon />}
-            className="mt-3 mb-10 tracking-widest absolute bottom-0 z-10 font-medium text-md bg-burnt rounded-md"
+            className="mt-3 mb-10 py-6 pl-6 pr-8 tracking-widest absolute bottom-0 z-10 font-medium text-md bg-burnt rounded-md"
             onClick={createButtonHandler}
           >
             CREATE ALBUM

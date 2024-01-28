@@ -7,7 +7,7 @@ import { AddAlarmTwoTone } from "@mui/icons-material";
 import orange from "../../public/circle.png";
 import pink from "../../public/ROSE.png";
 import Image from "next/image";
-import { Button } from "@nextui-org/react";
+import { Button, Link } from "@nextui-org/react";
 
 interface Track {
   id: string;
@@ -24,6 +24,7 @@ export default function Home() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [images, setImages] = useState<string[]>([]);
   const [trackIds, setTrackIds] = useState<string[]>([]);
+  const [title, setTitle] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean[]>([]);
   const [photoAlbum, setPhotoAlbum] = useState<photoAlbum | null>(null);
 
@@ -98,14 +99,13 @@ export default function Home() {
       });
     } catch (error) {
       console.error("Error in processing: ", error);
-      return; // Early exit on error
+      return;
     }
-
-    // Use useEffect to respond to trackIds change
   };
 
   useEffect(() => {
     if (trackIds.length > 0) {
+      console.log("uploading!");
       uploadTrackIds(trackIds);
     }
   }, [trackIds]); // Depend on trackIds
@@ -124,9 +124,11 @@ export default function Home() {
         .select()
         .single();
 
-      if (error) throw error;
-
-      router.push("/album/" + data.id);
+      if (data && data.id) {
+        router.push("/albums/" + data.id);
+      } else {
+        console.log("Upsert operation completed, but no data was returned");
+      }
     } catch (error) {
       console.error("Error in uploading track IDs: ", error);
     }
@@ -195,6 +197,7 @@ export default function Home() {
     <main className="flex justify-center bg-bgbeige min-h-screen">
       <div className="relative max-w-lg flex-col justify-center w-full h-screen bg-photoalbum px-10 py-10 overflow-hidden">
         <div className="h-[100%]">
+          <Link href="/library">Back</Link>
           <div className="grid grid-cols-3 gap-4 p-4 bg-[#ede7e2] h-[50%] mb-8">
             {images.map((url, index) => (
               <img
