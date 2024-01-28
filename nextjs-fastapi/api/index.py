@@ -237,33 +237,36 @@ def create_playlist(user_id: str, token: str, name: str, public: bool = True, de
     return response.json()
 
 
+
 @app.post("/api/vision")
 async def describe_image(request: Request):
     body = await request.json()
-    image_url = body.get("image_url")
-    print(image_url)
+    image_urls = body.get("image_urls")
 
-    if not image_url:
-        raise HTTPException(status_code=400, detail="Image URL is missing")
+    if not image_urls:
+        raise HTTPException(status_code=400, detail="Image URLs are missing")
+
+    if not isinstance(image_urls, list):
+        raise HTTPException(status_code=400, detail="image_urls must be a list")
+
+    # Build the content list with text and image URLs
+    content_list = [{
+        "type": "text",
+        "text": "Rate all the images on a scale from 0.0 to 1.0 describing the positiveness conveyed in the images. The higher the more positive (e.g. happy, cheerful, euphoric), and the lower the more negative (e.g. sad, depressed, angry). Next, give the collection of images a title. Only give 1 value and 1 title for all of the images listed. Give your response in the format following this example: 0.5, A Walk in the Forest"
+    }] + [{"type": "image_url", "image_url": {"url": url}} for url in image_urls]
+
+    # Create a message with the built content list
+    messages = [{"role": "user", "content": content_list}]
+    print(messages)
 
     try:
         response = client.chat.completions.create(
-        model="gpt-4-vision-preview",
-        messages=[
-                {
-                    "role": "user",
-                    "content": "Rate the image on a scale from 0.0 to 1.0 describing the positiveness conveyed by the image. The higher the more positive (e.g. happy, cheerful, euphoric), and the lower the more negative (e.g. sad, depressed, angry). Only answer with the number rating, no other words or punctuation.",
-                },
-                {
-                    "role": "user",
-                    "content": image_url,
-                },
-            ],
+            model="gpt-4-vision-preview",
+            messages=messages,
             max_tokens=30,
         )
-        print(response.choices[0])
-        return response.choices[0]
-
+        return response.choices[0].message.content
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -276,6 +279,4 @@ async def describe_image(request: Request):
 # print(stored_img_to_comparison([1] * 1, [1] * 3))
 
 # # print(create_playlist("yku0io7ib9xoq0iakf7i56zjj", "testy test"))
-
-# print(add_tracks_to_playlist("4ADsGrKrtqZhdvbE5YBWpB", "BQBvA2Zfoqpzc5m9fK0y8kqG_J58pf7mCtk8t-W8gbqV0qzh_eZoacUqgQ1tm7xNFM9-djp3WLEIKBBIRNnZLO3nXINJdaEqeB-Ua5cPxMsNRJB5WY9boJr9pczD_zmAbKXt4wejvbKMhM18inG4NGuez-008GqVEwgtoIiJ8FQft2Em2VCGLK4k7Y1tAGCw4EctViIj4MxokZ8o0T7Ioqu6PKhwbUG5-xGyJ3qbzn2XMF-3zm14R5GvD0omKTY1jca_dmTP4Ulhnr207IA", ["spotify:track:7CyPwkp0oE8Ro9Dd5CUDjW"]))
 
