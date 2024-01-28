@@ -3,11 +3,11 @@
 import { supabase } from "@/db";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-<<<<<<< HEAD
-import { Button } from "@nextui-org/react";
-=======
 import { AddAlarmTwoTone } from "@mui/icons-material";
->>>>>>> 730c77ba61f5b0a410185ae1d9a7b3022a7938ad
+import orange from "../../public/circle.png";
+import pink from "../../public/ROSE.png";
+import Image from "next/image";
+import { Button } from "@nextui-org/react";
 
 interface Track {
   id: string;
@@ -23,7 +23,7 @@ export default function Home() {
 
   const router = useRouter();
 
-  console.log(userProfile)
+  console.log(userProfile);
 
   useEffect(() => {
     console.log(localStorage.getItem("providerAccessToken"));
