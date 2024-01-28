@@ -15,43 +15,6 @@ interface Track {
 }
 
 export default function Home() {
-  const [tracks, setTracks] = useState<Track[]>([]);
-
-  useEffect(() => {
-    console.log("hi!");
-
-    const token = localStorage.getItem("providerAccessToken");
-
-    fetch("/api/recommendations", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // Include the token in the Authorization header
-      },
-      body: JSON.stringify({
-        limit: "3",
-        min_energy: "0.5",
-        max_energy: "0.8",
-        target_valence: "0.7",
-        genre: "pop",
-        track: "2tHiZQ0McWbtuWaax3dh4P",
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! Status: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log(data);
-        setTracks(data.tracks);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
-
   const [userProfile, setUserProfile] = useState<any>(null);
 
   const router = useRouter();
@@ -73,8 +36,6 @@ export default function Home() {
       });
   }, []);
 
-  console.log(tracks);
-
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
       <div className="relative max-w-lg flex-col ustify-center w-full h-screen bg-photoalbum px-10 py-64 overflow-hidden">
@@ -94,13 +55,16 @@ export default function Home() {
           name="faceImage"
           className="relative z-10 bg-burnt text-white outline-none p-3 file:mr-5 w-full font-bold rounded-md"
           onChange={async (event) => {
+            console.log("test");
             if (event.target.files && event.target.files[0] && userProfile) {
               const response = await supabase.storage
-                .from("face_images")
+                .from("user_faces")
                 .upload(userProfile.id, event.target.files[0], {
                   cacheControl: "3600",
                   upsert: false,
                 });
+
+              console.log(response);
 
               if (response.error) {
                 console.log(response.error);
@@ -108,10 +72,11 @@ export default function Home() {
               }
 
               const { data } = supabase.storage
-                .from("face_images")
+                .from("user_faces")
                 .getPublicUrl(userProfile.id);
+              console.log(data);
               await supabase.from("users").upsert({
-                face_image_path: "face_images" + "/" + userProfile.id,
+                face_image_path: "user_faces" + "/" + userProfile.id,
                 face_image: data.publicUrl,
                 spotify_username: userProfile.id,
               });
@@ -122,18 +87,6 @@ export default function Home() {
         <p className="text-center text-burnt m-5 relative z-10">
           Please upload a photo of yourself.
         </p>
-        <div className="flex flex-col justify-center items-center gap-2">
-          {tracks &&
-            tracks.map((track) => (
-              <iframe
-                key={track.id}
-                src={`https://open.spotify.com/embed/track/${track.id}`}
-                width="300"
-                height="80"
-                allow="encrypted-media"
-              ></iframe>
-            ))}
-        </div>
         <div className="-m-[24rem] -z-20">
           <Image width={2000} src={orange} alt="" />
         </div>

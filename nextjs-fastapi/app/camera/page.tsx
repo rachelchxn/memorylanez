@@ -12,63 +12,140 @@ import Image from "next/image";
 import { Button } from "@nextui-org/react";
 
 import Webcam from "react-webcam";
+import { supabase } from "@/db";
 
 export default function Camera() {
-    const [userPhoto, setUserPhoto] = useState(null);
-    const webcamRef = useRef(null)
+  const [userPhoto, setUserPhoto] = useState(null);
+  const webcamRef = useRef<any>(null);
+  const [userProfile, setUserProfile] = useState(null); // You need to set this state with the user's profile
+  const router = useRouter();
 
-    const videoConstraints = {
-        width: { min: 480 },
-        height: { min: 720 },
-        aspectRatio: 0.6666666667,
-        facingMode: "user"
-    };
+  useEffect(() => {
+    console.log(localStorage.getItem("providerAccessToken"));
+    fetch("/api/get_profile", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        token: localStorage.getItem("providerAccessToken"),
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setUserProfile(data);
+      });
+  }, []);
 
-    const capture = useCallback(() => {
-        const imageSrc = webcamRef.current.getScreenshot();
-        setUserPhoto(imageSrc);
-    }, [webcamRef]);
+  const videoConstraints = {
+    width: { min: 480 },
+    height: { min: 720 },
+    aspectRatio: 0.6666666667,
+    facingMode: "user",
+  };
 
-    return (
+  const capture = useCallback(() => {
+    if (webcamRef.current && userProfile) {
+      const imageSrc = webcamRef.current.getScreenshot();
+      setUserPhoto(imageSrc);
+      fetch(imageSrc)
+        .then((res) => res.blob())
+        .then((blob) => {
+          // Create a file from the blob
+          const file = new File([blob], `file.jpg`, { type: "image/jpeg" });
+          uploadImage(supabase, userProfile, file); // Call uploadImage function here
+        });
+    }
+  }, [Webcam]);
+
+  interface UserProfile {
+    id: string;
+    // other user profile fields
+  }
+
+  const uploadImage = async (
+    supabase: any,
+    userProfile: { id: any },
+    file: any
+  ) => {
+    // Upload the image to Supabase Storage
+    const uploadResponse = await supabase.storage
+      .from("face_images")
+      .upload(`user_faces/${userProfile.id}`, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    // Check for an error in the upload response
+    if (uploadResponse.error) {
+      console.error("Error uploading image:", uploadResponse.error);
+      return;
+    }
+
+    // Retrieve the public URL of the uploaded image
+    const { data } = supabase.storage
+      .from("face_images")
+      .getPublicUrl(`user_faces/${userProfile.id}`);
+
+    // Update the user's profile with the new image data
+    const upsertResponse = await supabase.from("users").upsert({
+      id: userProfile.id, // Assuming 'id' is the primary key of the 'users' table
+      face_image_path: `user_faces/${userProfile.id}`,
+      face_image: data.publicUrl,
+      spotify_username: userProfile.id, // This should match your database schema
+    });
+
+    // Check for an error in the upsert response
+    if (upsertResponse.error) {
+      console.error("Error updating user profile:", upsertResponse.error);
+      return;
+    }
+  };
+
+  return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
-        <div className="relative max-w-lg flex-col w-full h-screen bg-photoalbum px-10 py-[24rem] overflow-hidden">
-          <div className="relative z-10">
-            {(userPhoto == null) ?
-            (<div className="flex justify-center">
-                <div className="flex-col">
-                    <Webcam 
-                        videoConstraints={videoConstraints}
-                    />
-                    <Button 
-                        className="bg-burnt rounded-md font-medium text-white tracking-widest"
-                        onClick={capture}
-                    >
-                        TAKE PHOTO
-                    </Button>
+      <div className="relative max-w-lg flex-col w-full h-screen bg-photoalbum px-10 py-[24rem] overflow-hidden">
+        <div className="relative z-10">
+          {userPhoto == null ? (
+            <div className="flex justify-center">
+              <div className="flex-col">
+                <Webcam
+                  ref={webcamRef}
+                  videoConstraints={videoConstraints}
+                  screenshotFormat="image/jpeg"
+                />
+                <Button
+                  className="bg-burnt rounded-md font-medium text-white tracking-widest"
+                  onClick={capture}
+                >
+                  TAKE PHOTO
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <div className="flex-col">
+                <img src={userPhoto} alt="screenshot" />
+                <div className="flex">
+                  <Button
+                    className="bg-burnt rounded-md font-medium text-white tracking-widest"
+                    onClick={() => setUserPhoto(null)}
+                  >
+                    RETAKE PHOTO
+                  </Button>
                 </div>
-            </div>) :
-            (<div className="flex justify-center">
-                <div className="flex-col">
-                    <img src={userPhoto} alt="screenshot" />
-                    <div className="flex">
-                        <Button 
-                            className="bg-burnt rounded-md font-medium text-white tracking-widest"
-                            onClick={() => setUserPhoto(null)}
-                        >
-                            RETAKE PHOTO
-                        </Button>
-                    </div>
-                </div>
-            </div>)
-            }
-          </div>
-          <div className="-m-[32rem] -z-20">
-              <Image width={2000} src={orange} alt=""/>
-          </div>
-          <div className="-my-[80rem] ml-0 -mr-[30rem] -z-10">
-              <Image width={1500} src={pink} alt=""/>
-          </div>
+              </div>
+            </div>
+          )}
         </div>
-      </main>
-    );
+        <div className="-m-[32rem] -z-20">
+          <Image width={2000} src={orange} alt="" />
+        </div>
+        <div className="-my-[80rem] ml-0 -mr-[30rem] -z-10">
+          <Image width={1500} src={pink} alt="" />
+        </div>
+      </div>
+    </main>
+  );
 }
