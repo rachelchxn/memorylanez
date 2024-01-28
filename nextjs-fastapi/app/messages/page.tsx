@@ -21,6 +21,7 @@ export default function Library() {
   const [invitations, setInvitations] = useState<any>(null);
   const [fromUserProfile, setFromUserProfile] = useState<any>(null);
   const [faceImageUrl, setFaceImageUrl] = useState<any>(null);
+  const [inviteData, setInviteData] = useState<any>(null);
 
   useEffect(() => {
 
@@ -48,6 +49,9 @@ export default function Library() {
         .select(`*`) //WTF IS GOING ON I HATE SQL
         .eq("spotify_username_to", userProfile.display_name)
         .maybeSingle();
+
+      setInviteData(data)
+
       if (!data) {
         console.log(error);
         return;
@@ -103,7 +107,7 @@ export default function Library() {
     }
   };
 
-  console.log(fromUserProfile, faceImageUrl)
+  console.log(fromUserProfile, faceImageUrl, inviteData)
 
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
