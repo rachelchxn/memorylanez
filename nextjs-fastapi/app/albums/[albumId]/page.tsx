@@ -19,8 +19,9 @@ interface Track {
   name: string;
 }
 
-export default async function Album({ params }: { params: { slug: string } }) {
+export default function Album({ params }: { params: { albumId: string } }) {
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [tracks, setTracks] = useState<Track[]>([]);
 
   const router = useRouter();
   useEffect(() => {
@@ -41,29 +42,42 @@ export default async function Album({ params }: { params: { slug: string } }) {
       });
   }, []);
 
-  const slug = params.slug;
 
-  console.log(slug);
+  useEffect(() => {
+    async function getTracks() {
+      const { data, error } = await supabase
+        .from("albums")
+        .select("tracks")
+        .eq("id", params.albumId)
+        .single();
+      if (!data) {
+        console.log(error);
+        return;
+      }
 
-  const [tracks, setTracks] = useState<Track[]>([]);
+      console.log(data)
+      setTracks(data.tracks);
+    }
 
-  const { data, error } = await supabase
-    .from("cities")
-    .select("tracks")
-    .eq("owner", userProfile.id);
+    getTracks()
+  }, [params.albumId])
+
+  console.log(params.albumId)
+
 
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
-      <div className="relative max-w-lg flex-col w-full h-screen bg-photoalbum px-10 py-[24rem] overflow-hidden">
+      <div className="relative max-w-lg flex-col w-full h-screen px-10 py-[24rem] overflow-hidden">
         <div className="relative z-10">
-          {data &&
-            data.map((track) => (
+          {tracks &&
+            tracks.map((track) => (
               <iframe
-                // key={track}
+                key={track.id}
                 src={`https://open.spotify.com/embed/track/${track}`}
                 width="300"
                 height="80"
                 allow="encrypted-media"
+                style={{ backgroundColor: "#e3d8cd "}}
               ></iframe>
             ))}
         </div>
