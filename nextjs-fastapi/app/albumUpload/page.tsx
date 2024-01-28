@@ -24,7 +24,7 @@ export default function Home() {
   const [images, setImages] = useState<string[]>([]);
   const [title, setTitle] = useState<string>("");
   const [photoAlbum, setPhotoAlbum] = useState<photoAlbum | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
@@ -58,6 +58,8 @@ export default function Home() {
   }, []);
 
   const handleCreate = async () => {
+    setIsLoading(true);
+
     try {
       const { data: completeData, error: completeError } = await supabase
         .from("albums")
@@ -257,13 +259,20 @@ export default function Home() {
             }}
           />
 
-          <Button
+          {(isLoading) ?
+          (<Button 
+            isLoading
+            className="text-lg py-6 px-6 w-[100%] mt-20">
+              Creating Album
+            </Button>
+          ) :
+          (<Button
             disabled={images.length == 0}
             className="text-lg py-6 px-6 w-[100%] mt-20 "
             onClick={handleCreate}
           >
             Create Album
-          </Button>
+          </Button>)}
           <div className="flex flex-col justify-center items-center gap-2">
             {tracks &&
               tracks.map((track) => (
