@@ -7,11 +7,16 @@ import { AddAlarmTwoTone } from "@mui/icons-material";
 import orange from "../../public/circle.png";
 import pink from "../../public/ROSE.png";
 import Image from "next/image";
-import { Button } from "@nextui-org/react";
+import { Button, Link } from "@nextui-org/react";
 
 interface Track {
   id: string;
   name: string;
+}
+
+
+interface photoAlbum {
+  id: number
 }
 
 export default function Home() {
@@ -19,48 +24,88 @@ export default function Home() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [images, setImages] = useState<string[]>([]);
   const [trackIds, setTrackIds] = useState<string[]>([]);
+  const [title, setTitle] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean[]>([]);
+  const [photoAlbum, setPhotoAlbum] = useState<photoAlbum | null>(null);
 
   const router = useRouter();
 
-  console.log(userProfile);
-
   useEffect(() => {
-    console.log(localStorage.getItem("providerAccessToken"));
-    fetch("/api/get_profile", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        token: localStorage.getItem("providerAccessToken"),
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        setUserProfile(data);
-      });
+    async function createPhotoAlbum() {
+      const res = await fetch("/api/get_profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: localStorage.getItem("providerAccessToken"),
+        }),
+      })
+
+      const data = await res.json()
+
+      setUserProfile(data)
+
+
+      const { data: albumData, error } = await supabase
+        .from("albums")
+        .upsert({
+          owner: data.id,
+        })
+        .select()
+        .single();
+
+      setPhotoAlbum(albumData);
+    }
+    createPhotoAlbum();
   }, []);
 
   const handleCreate = async () => {
     try {
+
+      const { data: completeData, error: completeError } = await supabase
+        .from("albums")
+        .upsert(
+          {
+            id: photoAlbum?.id,
+            images: images,
+            owner: userProfile.id,
+          },
+          {}
+        )
+        .select()
+        .single();
+
+      if (completeError){
+        console.log(completeError)
+        return
+      }
+
       const visionResponse = await getVisionDescription(images);
       const valenceResponse = visionResponse.split(", ");
       await getRecommendations(parseFloat(valenceResponse[0]));
 
       // Update state and wait for the next render to ensure trackIds are updated
       setTrackIds(tracks.map((track) => track.id));
+      fetch("/api/compare_faces", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: userProfile.id,
+          photo_album_id: photoAlbum?.id,
+        }),
+      });
     } catch (error) {
       console.error("Error in processing: ", error);
-      return; // Early exit on error
+      return;
     }
-
-    // Use useEffect to respond to trackIds change
   };
 
   useEffect(() => {
     if (trackIds.length > 0) {
+      console.log("uploading!");
       uploadTrackIds(trackIds);
     }
   }, [trackIds]); // Depend on trackIds
@@ -79,9 +124,11 @@ export default function Home() {
         .select()
         .single();
 
-      if (error) throw error;
-
-      router.push("/album/" + data.id);
+      if (data && data.id) {
+        router.push("/albums/" + data.id);
+      } else {
+        console.log("Upsert operation completed, but no data was returned");
+      }
     } catch (error) {
       console.error("Error in uploading track IDs: ", error);
     }
@@ -103,7 +150,6 @@ export default function Home() {
       }
 
       const data = await response.json();
-      console.log(data);
       return data;
     } catch (error) {
       console.error("Error fetching vision description:", error);
@@ -144,10 +190,14 @@ export default function Home() {
       });
   };
 
+  console.log("photoAlbum", photoAlbum)
+  console.log("userProfile", userProfile);
+
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
       <div className="relative max-w-lg flex-col justify-center w-full h-screen bg-photoalbum px-10 py-10 overflow-hidden">
         <div className="h-[100%]">
+          <Link href="/library">Back</Link>
           <div className="grid grid-cols-3 gap-4 p-4 bg-[#ede7e2] h-[50%] mb-8">
             {images.map((url, index) => (
               <img
@@ -165,24 +215,13 @@ export default function Home() {
             multiple
             onChange={async (event) => {
               if (event.target.files && userProfile) {
-                const { data, error } = await supabase
-                  .from("albums")
-                  .upsert(
-                    {
-                      owner: userProfile.id,
-                    },
-                    {}
-                  )
-                  .select()
-                  .single();
-
                 let images_uploaded = [] as string[];
                 let newImages = [];
 
                 for (let i = 0; i < event.target.files.length; i++) {
                   const file = event.target.files[i];
                   const res = await supabase.storage
-                    .from(`user_uploads/${userProfile.id}/${data.id}`)
+                    .from(`user_uploads/${userProfile.id}/${photoAlbum?.id}`)
                     .upload(i.toString(), file, {
                       cacheControl: "3600",
                       upsert: false,
@@ -193,55 +232,37 @@ export default function Home() {
                   }
                   console.log("Uploaded file to object storage:", res);
                   const { data: pubUrlData } = await supabase.storage
-                    .from(`user_uploads/${userProfile.id}/${data.id}`)
+                    .from(`user_uploads/${userProfile.id}/${photoAlbum?.id}`)
                     .getPublicUrl(i.toString());
                   images_uploaded.push(pubUrlData.publicUrl);
                   newImages.push(pubUrlData.publicUrl);
                 }
                 setImages([...images, ...newImages]);
-                console.log(images);
-
-                const { data: completeData, error: completeError } =
-                  await supabase
-                    .from("albums")
-                    .upsert(
-                      {
-                        images: images_uploaded,
-                        owner: userProfile.id,
-                      },
-                      {}
-                    )
-                    .select()
-                    .single();
-
-                if (completeError) {
-                  console.log(completeError);
-                  return;
-                }
               }
             }}
           />
 
           <Button
+            disabled={images.length == 0}
             className="text-lg py-6 px-6 w-[100%] mt-20 "
             onClick={handleCreate}
           >
             Create Album
           </Button>
+          <div className="flex flex-col justify-center items-center gap-2">
+            {tracks &&
+              tracks.map((track) => (
+                <iframe
+                  key={track.id}
+                  src={`https://open.spotify.com/embed/track/${track.id}`}
+                  width="300"
+                  height="80"
+                  allow="encrypted-media"
+                ></iframe>
+              ))}
+          </div>
         </div>
 
-        <div className="flex flex-col justify-center items-center gap-2">
-          {tracks &&
-            tracks.map((track) => (
-              <iframe
-                key={track.id}
-                src={`https://open.spotify.com/embed/track/${track.id}`}
-                width="300"
-                height="80"
-                allow="encrypted-media"
-              ></iframe>
-            ))}
-        </div>
         {/* <div className="-m-[64rem] -z-30">
           <Image width={2000} src={orange} alt="" />
         </div>

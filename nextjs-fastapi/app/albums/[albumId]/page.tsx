@@ -11,7 +11,6 @@ import React from "react";
 import orange from "../../../public/circle.png";
 import pink from "../../../public/ROSE.png";
 import Image from "next/image";
-
 import { Button } from "@nextui-org/react";
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -23,13 +22,16 @@ interface Track {
 
 export default function Album({ params }: { params: { albumId: string } }) {
   const [userProfile, setUserProfile] = useState<any>(null);
+<<<<<<< HEAD
   const [tracks, setTracks] = useState<Track[]>([]);
   const [count, setCount] = useState<number>(0);
   const [currPhoto, setCurrPhoto] = useState<string>("");
   const [currTrack, setCurrTrack] = useState<Track>();
   let albumLength = 0;
+=======
+>>>>>>> 1a0eb15e8c1d5c9742349db5eb6cc74035b4abb2
 
-  const router = useRouter();
+  // const router = useRouter();
   useEffect(() => {
     console.log(localStorage.getItem("providerAccessToken"));
     fetch("/api/get_profile", {
@@ -48,6 +50,11 @@ export default function Album({ params }: { params: { albumId: string } }) {
       });
   }, []);
 
+  const slug = params;
+
+  console.log(slug);
+
+  const [tracks, setTracks] = useState<Track[]>([]);
 
   useEffect(() => {
     async function getTracks() {
@@ -61,13 +68,14 @@ export default function Album({ params }: { params: { albumId: string } }) {
         return;
       }
 
-      console.log(data)
+      console.log(data);
       setTracks(data.tracks);
     }
 
     getTracks()
   }, [params.albumId])
 
+<<<<<<< HEAD
   useEffect(() => {
     async function updateSlideshow() {
       const { data, error } = await supabase
@@ -88,11 +96,14 @@ export default function Album({ params }: { params: { albumId: string } }) {
   }, [count])
 
   console.log(params.albumId)
+=======
+>>>>>>> 1a0eb15e8c1d5c9742349db5eb6cc74035b4abb2
 
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
-      <div className="relative max-w-lg flex-col w-full h-screen px-10 py-[24rem] overflow-hidden">
+      <div className="relative max-w-lg flex-col w-full h-screen bg-photoalbum px-10 py-[24rem] overflow-hidden">
         <div className="relative z-10">
+<<<<<<< HEAD
           <div className="flex justify-center">
             <div className="w-full h-auto">
               <Image src={currPhoto} alt="" />
@@ -137,6 +148,20 @@ export default function Album({ params }: { params: { albumId: string } }) {
                 
               </div>
             </div>
+=======
+          {tracks &&
+            tracks.map((track) => (
+              <div className="flex justify-center" key={track.id}>
+                <iframe
+                  src={`https://open.spotify.com/embed/track/${track}`}
+                  allow="encrypted-media"
+                  height="80"
+                  width="300"
+                  className="rounded-xl my-3"
+                ></iframe>
+              </div>
+            ))}
+>>>>>>> 1a0eb15e8c1d5c9742349db5eb6cc74035b4abb2
         </div>
         <div className="-m-[32rem] -z-20">
           <Image width={2000} src={orange} alt="" />

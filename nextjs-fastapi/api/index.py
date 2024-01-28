@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, Request
-# from db import supabase
 from dotenv import load_dotenv
 from typing import List
 from openai import OpenAI
@@ -59,9 +58,8 @@ def get_faces():
             imageFile = Image.open(imageStream)
             newImageFile = imageFile.convert("RGB")
 
-            face_images.append((photo_name["name"], newImageFile))
+            face_images.append(newImageFile)
     return face_images
-
 
 @app.post("/api/compare_faces")
 async def compare_faces(request: Request):
@@ -69,44 +67,36 @@ async def compare_faces(request: Request):
 
     photo_album_id = body.get("photo_album_id")
     user_id = body.get("user_id")
-    # print(photo_album_id, user_id)
+
+    print(user_id, photo_album_id)
     album_photos = get_photo_album_images(user_id, photo_album_id)
+    print("got album photos", album_photos)
 
     faces = get_faces()
-    # print("got faces")
+    print("got faces", faces)
 
+    for i, face in enumerate(faces):
+        face.save("files/pil_faces/" + str(i) + ".png")
+    print("saved pil faces")
 
-    if len(faces) == 0 or len(album_photos) == 0:
-        return
-
+    for i, album_photo in enumerate(album_photos):
+        album_photo.save("files/pil_albums/" + str(i) + ".png")
 
     face_encodings = []
+    for i, face in enumerate(faces):
+        img = face_recognition.load_image_file("files/pil_faces/" + str(i) + ".png")
+        encoding = face_recognition.face_encodings(img)[0]
+        face_encodings.append(encoding)
+    print(face_encodings)
 
-    for face in faces:
-        encoding = face_recognition.face_encodings(np.array(face[1]))
-        if (len(encoding) > 0):
-            face_encodings.append((face[0], encoding[0]))
+    results = []
+    for i, album in enumerate(album_photos):
+        img = face_recognition.load_image_file("files/pil_albums/" + str(i) + ".png")
+        encoding = face_recognition.face_encodings(img)[0]
+        results = face_recognition.compare_faces(face_encodings, encoding)
+    print(results)
 
-    album_encodings = []
-    for album in album_photos:
-        album_encoding = face_recognition.face_encodings(np.array(album))
-        if (len(album_encoding) > 0):
-            album_encodings.append(album_encoding[0])
 
-    names = []
-    if len(face_encodings) > 0:
-        for photo_encoding in album_encodings:
-            res = face_recognition.compare_faces([encode[1] for encode in face_encodings], photo_encoding)
-            if True in res:
-                first_match_index = res.index(True)
-                name = face_encodings[first_match_index][0]
-                names.append(name)
-
-    print(names)
-    print(type(photo_album_id), type(name))
-    for name in names:
-        data = supabase.from_("user_album").upsert({"spotify_username": name, "album_id": photo_album_id}).execute()
-        print(data)
 
 
 
@@ -261,11 +251,9 @@ async def describe_image(request: Request):
 
 
 # # print(get_recommendations(1, 0.2, 1, 0.2, 1, "pop", get_token))
-# print("hi!")
+print("hi!")
 
-# print(get_token())
-
-# print(stored_img_to_comparison([1] * 1, [1] * 3))
+print(get_token())
 
 # # print(create_playlist("yku0io7ib9xoq0iakf7i56zjj", "testy test"))
 
