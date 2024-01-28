@@ -43,16 +43,14 @@ export default function Home() {
         }),
       });
 
-      console.log(res);
       const data = await res.json();
-
-      console.log(data);
 
       const test = await supabase
         .from("users")
         .select()
         .eq("spotify_username", data.id)
         .single()
+
 
       if (test.data.face_image){
         router.push("/albumUpload")

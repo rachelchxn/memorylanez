@@ -59,7 +59,7 @@ export default function Home() {
             if (event.target.files && event.target.files[0] && userProfile) {
               const response = await supabase.storage
                 .from("user_faces")
-                .upload(userProfile.id, event.target.files[0], {
+                .upload("files/" + userProfile.id, event.target.files[0], {
                   cacheControl: "3600",
                   upsert: false,
                 });
@@ -76,7 +76,7 @@ export default function Home() {
                 .getPublicUrl(userProfile.id);
               console.log(data);
               await supabase.from("users").upsert({
-                face_image_path: "user_faces" + "/" + userProfile.id,
+                face_image_path: "user_faces/files/" + userProfile.id,
                 face_image: data.publicUrl,
                 spotify_username: userProfile.id,
               });
