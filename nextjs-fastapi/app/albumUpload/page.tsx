@@ -23,8 +23,6 @@ export default function Home() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [images, setImages] = useState<string[]>([]);
   const [title, setTitle] = useState<string>("");
-  const [trackIds, setTrackIds] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean[]>([]);
   const [photoAlbum, setPhotoAlbum] = useState<photoAlbum | null>(null);
 
   const router = useRouter();
@@ -83,7 +81,6 @@ export default function Home() {
       await getRecommendations(parseFloat(valenceResponse[0]));
 
       // Update state and wait for the next render to ensure trackIds are updated
-      setTrackIds(tracks.map((track) => track.id));
       setTitle(valenceResponse[0]);
       fetch("/api/compare_faces", {
         method: "POST",
@@ -104,33 +101,35 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (trackIds.length > 0) {
+     if (!photoAlbum) return;
+    const uploadTrackIds = async (trackIds: string[], title: string) => {
+      try {
+        const { data, error } = await supabase
+          .from("albums")
+          .upsert(
+            {
+              id: photoAlbum.id,
+              owner: userProfile.id,
+              tracks: trackIds,
+              title: title,
+            },
+            {}
+          )
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        router.push("/albums/" + data.id);
+      } catch (error) {
+        console.error("Error in uploading track IDs: ", error);
+      }
+    };
+    if (tracks.length > 0) {
+      const trackIds = tracks.map(track => track.id)
       uploadTrackIds(trackIds, title);
     }
-  }, [trackIds, title]); // Depend on trackIds
-
-  const uploadTrackIds = async (trackIds: string[], title: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("albums")
-        .upsert(
-          {
-            owner: userProfile.id,
-            tracks: trackIds,
-            title: title,
-          },
-          {}
-        )
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      router.push("/albums/" + data.id);
-    } catch (error) {
-      console.error("Error in uploading track IDs: ", error);
-    }
-  };
+  }, [tracks, title, router, userProfile]); // Depend on trackIds
 
   const getVisionDescription = async (imageUrls: string[]) => {
     console.log(imageUrls);
@@ -213,16 +212,6 @@ export default function Home() {
             multiple
             onChange={async (event) => {
               if (event.target.files && userProfile) {
-                const { data, error } = await supabase
-                  .from("albums")
-                  .upsert(
-                    {
-                      owner: userProfile.id,
-                    },
-                    {}
-                  )
-                  .select()
-                  .single();
                 let images_uploaded = [] as string[];
                 let newImages = [];
                 for (let i = 0; i < event.target.files.length; i++) {
@@ -251,6 +240,7 @@ export default function Home() {
                     .from("albums")
                     .upsert(
                       {
+                        id: photoAlbum?.id,
                         images: images_uploaded,
                         owner: userProfile.id,
                       },
