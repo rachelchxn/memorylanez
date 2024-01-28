@@ -24,11 +24,13 @@ app = FastAPI()
 
 # given a album id, obtain all of the faces that belong to the album
 def get_photo_album_images(user_id: str, photo_album_id: int) -> List[str]:
-    photo_names = supabase.storage.from_("user_uploads").list(path=user_id + "/" + str(photo_album_id - 1))
+    print("path", user_id + "/" + str(photo_album_id))
+    photo_names = supabase.storage.from_("user_uploads").list(path=user_id + "/" + str(photo_album_id))
 
+    print("photo_names", photo_names)
     album_images = []
     for photo_name in photo_names:
-        photo_path = user_id + "/" + str(photo_album_id - 1) + "/" + photo_name["name"]
+        photo_path = user_id + "/" + str(photo_album_id) + "/" + photo_name["name"]
         file = supabase.storage.from_("user_uploads").download(photo_path)
         with open("files/albums/" + photo_name["name"], "wb") as f:
             f.write(file)
