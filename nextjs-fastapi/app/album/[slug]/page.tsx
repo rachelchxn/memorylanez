@@ -1,4 +1,7 @@
 "use client";
+
+import { supabase } from "@/db";
+
 import { useEffect, useCallback, useRef, useState } from "react";
 
 import { useRouter } from "next/navigation";
@@ -23,26 +26,17 @@ export default async function Album({ params }: { params: { slug: string } }) {
 
     const [tracks, setTracks] = useState<Track[]>([]);
 
-    await fetch(`http://localhost:8000/api/get_album?_id=${slug}`)
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! Status: ${res.status}`);
-      }
-      return res.json();
-    })
-    .then((data) => {
-      setTracks(data.tracks);
-    })
-    .catch((error) => {
-      console.error("Mamma mia!", error);
-    })
+    const { data, error } = await supabase
+      .from('cities')
+      .select('tracks')
+      .eq('owner', user_id) // HOW DO I GET USER ID PLEASE HELP CAN I GET IT FROM THE SESSION OR SOMETHING IDK HOW AUTH WORKS PLS SEND HELP
 
     return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
         <div className="relative max-w-lg flex-col w-full h-screen bg-photoalbum px-10 py-[24rem] overflow-hidden">
           <div className="relative z-10">
-            {
-              tracks.map((track) => (
+            {data &&
+              data.map((track) => (
                 <iframe
                   key={track.id}
                   src={`https://open.spotify.com/embed/track/${track.id}`}

@@ -2,6 +2,8 @@
 
 import { supabase } from "@/db";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { AddAlarmTwoTone } from "@mui/icons-material";
 
 interface Track {
   id: string;
@@ -12,6 +14,9 @@ export default function Home() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [images, setImages] = useState<string[]>([]);
+  const [trackIds, setTrackIds] = useState<string[]>([]);
+
+  const router = useRouter();
 
   useEffect(() => {
     console.log(localStorage.getItem("providerAccessToken"));
@@ -37,13 +42,31 @@ export default function Home() {
       .then((data) => {
         // Assuming 'data' is a string that contains comma-separated values
         const response = data.split(", ");
-        return getRecommendations(parseFloat(response[0]));
+        getRecommendations(parseFloat(response[0]));
+        setTrackIds(tracks.map(track => track.id));
+      })
+      .then(() => {
+        uploadTrackIds(trackIds);
       })
       .catch((error) => {
         // Always good to have a catch for any errors in the promise chain
         console.error("Error in processing: ", error);
       });
   };
+
+  const uploadTrackIds = async(trackIds: string[]) => {
+    const { data, error }= await supabase.from("albums")
+      .upsert(
+        {
+          owner: userProfile.id,
+          tracks: trackIds,
+        },
+        {}
+      )
+      .select()
+      .single();
+    router.push('/album/'+ data.id);
+  }
 
   const getVisionDescription = async (imageUrls: string[]) => {
     console.log(imageUrls);
