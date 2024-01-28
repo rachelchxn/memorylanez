@@ -170,6 +170,7 @@ export default function Home() {
         max_energy: "1.0",
         target_valence: valence,
         genre: "pop",
+        track: "2tHiZQ0McWbtuWaax3dh4P",
       }),
     })
       .then((res) => {
@@ -265,19 +266,13 @@ export default function Home() {
             }}
           />
 
-          {loading ? (
-            <Button isLoading className="text-lg py-6 px-6 w-[100%] mt-20">
-              Creating Album
-            </Button>
-          ) : (
-            <Button
-              disabled={images.length == 0}
-              className="text-lg py-6 px-6 w-[100%] mt-20 "
-              onClick={handleCreate}
-            >
-              Create Album
-            </Button>
-          )}
+          <Button
+            disabled={images.length == 0}
+            className="text-lg py-6 px-6 w-[100%] mt-20 "
+            onClick={handleCreate}
+          >
+            Create Album
+          </Button>
           <div className="flex flex-col justify-center items-center gap-2">
             {tracks &&
               tracks.map((track) => (

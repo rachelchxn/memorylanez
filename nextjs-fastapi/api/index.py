@@ -163,6 +163,7 @@ async def get_recommendations(request: Request):
     max_energy = body.get("max_energy")
     target_valence = body.get("target_valence")
     genre = body.get("genre")
+    track = body.get("track")
 
     # Extract token from the Authorization header
     token = get_token()
@@ -175,6 +176,7 @@ async def get_recommendations(request: Request):
         "max_energy": max_energy,
         "target_valence": target_valence,
         "seed_genres": genre,
+        "seed_tracks": track,
     }
     headers = {"Authorization": f"Bearer {token}"}
 
