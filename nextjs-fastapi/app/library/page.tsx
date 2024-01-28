@@ -11,6 +11,7 @@ import Image from "next/image";
 import orange from "../../public/circle.png";
 import pink from "../../public/ROSE.png";
 import { supabase } from "@/db";
+import Link from "next/link";
 
 export default function Library() {
   const router = useRouter();
@@ -105,17 +106,19 @@ export default function Library() {
             className="relative max-h-carousel w-full"
           >
             {albums.map((album) => (
-              <div
-                key={album}
-                className="w-[100%] p-4 flex gap-4 mb-4 rounded-lg"
-                style={{ backgroundColor: "rgba(245, 245, 220, 0.5)" }}
-              >
-                <img
-                  src={album.images[0]}
-                  className="w-24 h-24 object-cover rounded-sm"
-                />
-                <h2 className="text-black">{album.title}</h2>
-              </div>
+              <Link href={`/albums/${album.id}`}>
+                <div
+                  key={album}
+                  className="w-[100%] p-4 flex gap-4 mb-4 rounded-lg"
+                  style={{ backgroundColor: "rgba(245, 245, 220, 0.5)" }}
+                >
+                  <img
+                    src={album.images[0]}
+                    className="w-24 h-24 object-cover rounded-sm"
+                  />
+                  <h2 className="text-black">{album.title}</h2>
+                </div>
+              </Link>
             ))}
           </ScrollShadow>
         </div>
