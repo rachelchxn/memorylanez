@@ -84,6 +84,7 @@ export default function Home() {
 
       // Update state and wait for the next render to ensure trackIds are updated
       setTrackIds(tracks.map((track) => track.id));
+      setTitle(valenceResponse[0]);
       fetch("/api/compare_faces", {
         method: "POST",
         headers: {
@@ -125,7 +126,7 @@ export default function Home() {
 
       if (error) throw error;
 
-      router.push("/album/" + data.id);
+      router.push("/albums/" + data.id);
     } catch (error) {
       console.error("Error in uploading track IDs: ", error);
     }
