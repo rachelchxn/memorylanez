@@ -14,6 +14,8 @@ import Image from "next/image";
 import { Button } from "@nextui-org/react";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import ReplyIcon from '@mui/icons-material/Reply';
+import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, ScrollShadow} from "@nextui-org/react";
 
 interface Track {
   id: string;
@@ -95,6 +97,15 @@ export default function Album({ params }: { params: { albumId: string } }) {
     setTitle(data.title);
   }
 
+  async function wassupReconnections() {
+    const { data, error } = await supabase
+      .from("user_album")
+      .select(`spotify_username, albums(image)`) //WTF IS GOING ON I HATE SQL
+      .eq("album_id", userProfile )//
+  }
+
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+
   console.log(params.albumId);
 
   return (
@@ -102,6 +113,26 @@ export default function Album({ params }: { params: { albumId: string } }) {
       <div className="relative max-w-lg flex-col w-full h-screen bg-photoalbum px-10 py-10 overflow-hidden">
         <div className="relative z-10">
           <h1>{title}</h1>
+          <div className="flex justify-end">
+            <Button isIconOnly onPress={onOpen}>
+              <ReplyIcon className="text-white" />
+            </Button> 
+            <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+              <ModalContent>
+                {(onClose) => (
+                  <>
+                    <ModalHeader>See Your Reconnections!</ModalHeader>
+                    <ModalBody>
+                      <ScrollShadow>
+                        
+                      </ScrollShadow>
+                    </ModalBody>
+                  </>
+                )
+                }
+              </ModalContent>
+            </Modal>
+          </div>
           <div className="flex justify-center">
             <img src={currPhoto} alt="" className="w-[100%] bottom-[auto]" />
           </div>
