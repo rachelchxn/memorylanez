@@ -97,9 +97,6 @@ async def compare_faces(request: Request):
     print(results)
 
 
-
-
-
 @app.get("/api/python")
 def hello_world():
     data, count = supabase.table('test').insert([{"name": "test"}]).execute()
