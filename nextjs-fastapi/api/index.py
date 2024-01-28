@@ -143,20 +143,40 @@ def get_token():
 @app.post("/api/recommendations")
 async def get_recommendations(request: Request):
     body = await request.json()
-    # token = body.get("token")
-    token = get_token()
-    print("token", token)
-    if not token:
-        raise HTTPException(status_code=400, detail="Token is missing")
 
-    url = "https://api.spotify.com/v1/recommendations?seed_genres=classical%2Ccountry&seed_tracks=0c6xIDDpzE81m2q797ordA&limit=5"
-    headers = {
-        "Authorization": "Bearer " + token
+    # Extract parameters from the request body
+    limit = body.get("limit")
+    min_energy = body.get("min_energy")
+    max_energy = body.get("max_energy")
+    target_valence = body.get("target_valence")
+    genre = body.get("genre")
+    track = body.get("track")
+
+    # Extract token from the Authorization header
+    token = get_token()
+
+    # Construct the Spotify API request
+    spotify_url = "https://api.spotify.com/v1/recommendations"
+    params = {
+        "limit": limit,
+        "min_energy": min_energy,
+        "max_energy": max_energy,
+        "target_valence": target_valence,
+        "seed_genres": genre,
+        "seed_tracks": track,
     }
-    result = requests.get(url, headers=headers)
-    print(result)
-    json_result = json.loads(result.content)
-    return json_result
+    headers = {"Authorization": f"Bearer {token}"}
+
+    try:
+        response = requests.get(spotify_url, headers=headers, params=params)
+        response.raise_for_status()  # This will raise an HTTPError for non-200 responses
+        return response.json()
+    except requests.HTTPError as http_err:
+        # Handle specific HTTP errors here
+        raise HTTPException(status_code=response.status_code, detail=f"Error from Spotify API: {response.text}")
+    except Exception as e:
+        # Handle other exceptions here
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.post("/api/create_playlist")
 def create_playlist(user_id: str, playlist_name: str):
@@ -229,8 +249,9 @@ async def describe_image(request: Request):
 
 
 # # print(get_recommendations(1, 0.2, 1, 0.2, 1, "pop", get_token))
+print("hi!")
 
-# # print(token)
+print(get_token())
 
 # # print(create_playlist("yku0io7ib9xoq0iakf7i56zjj", "testy test"))
 
