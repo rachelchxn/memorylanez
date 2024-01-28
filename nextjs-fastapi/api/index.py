@@ -67,13 +67,13 @@ async def compare_faces(request: Request):
 
     photo_album_id = body.get("photo_album_id")
     user_id = body.get("user_id")
-    # print(photo_album_id, user_id)
+
+    print(user_id, photo_album_id)
     album_photos = get_photo_album_images(user_id, photo_album_id)
-    print("got album images")
-    print("album photos", album_photos)
+    print("got album photos", album_photos)
 
     faces = get_faces()
-    print("got faces")
+    print("got faces", faces)
 
     for i, face in enumerate(faces):
         face.save("files/pil_faces/" + str(i) + ".png")
@@ -242,7 +242,7 @@ async def describe_image(request: Request):
             max_tokens=30,
         )
         return response.choices[0].message.content
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
