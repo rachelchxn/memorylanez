@@ -22,14 +22,11 @@ interface Track {
 
 export default function Album({ params }: { params: { albumId: string } }) {
   const [userProfile, setUserProfile] = useState<any>(null);
-<<<<<<< HEAD
   const [tracks, setTracks] = useState<Track[]>([]);
   const [count, setCount] = useState<number>(0);
   const [currPhoto, setCurrPhoto] = useState<string>("");
   const [currTrack, setCurrTrack] = useState<Track>();
   let albumLength = 0;
-=======
->>>>>>> 1a0eb15e8c1d5c9742349db5eb6cc74035b4abb2
 
   // const router = useRouter();
   useEffect(() => {
@@ -50,11 +47,6 @@ export default function Album({ params }: { params: { albumId: string } }) {
       });
   }, []);
 
-  const slug = params;
-
-  console.log(slug);
-
-  const [tracks, setTracks] = useState<Track[]>([]);
 
   useEffect(() => {
     async function getTracks() {
@@ -80,7 +72,7 @@ export default function Album({ params }: { params: { albumId: string } }) {
       const { data, error } = await supabase
         .from("albums")
         .select("tracks, images")
-        .eq("id", params.albumId) 
+        .eq("id", params.albumId)
         .single();
       if (!data) {
         console.log(error);
@@ -141,7 +133,7 @@ export default function Album({ params }: { params: { albumId: string } }) {
                     <ArrowForwardIosIcon className="text-white" />
                   </Button>
                 </div>)}
-                
+
               </div>
             </div>
         </div>
