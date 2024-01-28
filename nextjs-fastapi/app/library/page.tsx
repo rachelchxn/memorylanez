@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, ScrollShadow } from "@nextui-org/react";
 import ChatBubbleIcon from "@mui/icons-material/ChatBubble";
 import MarkChatUnreadIcon from "@mui/icons-material/MarkChatUnread";
@@ -10,14 +10,55 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import orange from "../../public/circle.png";
 import pink from "../../public/ROSE.png";
+import { supabase } from "@/db";
 
 export default function Library() {
   const router = useRouter();
 
   const [unreadNotif, setUnreadNotif] = useState(false);
+  const [albums, setAlbums] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   const createButtonHandler = () => {
     router.push("/albumUpload");
+  };
+
+  useEffect(() => {
+    fetch("/api/get_profile", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        token: localStorage.getItem("providerAccessToken"),
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setUserProfile(data);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (userProfile && userProfile.id) {
+      getAlbums(userProfile.id);
+    }
+  }, [userProfile]); // useEffect depends on userProfile
+
+  const getAlbums = async (userID: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("albums")
+        .select("*")
+        .eq("owner", userID);
+
+      if (error) throw error;
+      setAlbums(data);
+      console.log(data);
+    } catch (error) {
+      console.error("Error fetching albums:", error);
+    }
   };
 
   return (
@@ -54,33 +95,18 @@ export default function Library() {
             hideScrollBar
             className="relative max-h-carousel w-full"
           >
-            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">
-              Placeholder
-            </div>
-            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">
-              Placeholder
-            </div>
-            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">
-              Placeholder
-            </div>
-            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">
-              Placeholder
-            </div>
-            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">
-              Placeholder
-            </div>
-            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">
-              Placeholder
-            </div>
-            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">
-              Placeholder
-            </div>
-            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">
-              Placeholder
-            </div>
-            <div className="bg-placeholder h-32 w-full rounded-lg text-center text-burnt font-bold py-12 mb-3">
-              Placeholder
-            </div>
+            {albums.map((album) => (
+              <div
+                className="w-[100%] p-4 flex gap-4 mb-4 rounded-lg"
+                style={{ backgroundColor: "rgba(245, 245, 220, 0.5)" }}
+              >
+                <img
+                  src={album.images[0]}
+                  className="w-24 h-24 object-cover rounded-sm"
+                />
+                <h2 className="text-black">{album.title}</h2>
+              </div>
+            ))}
           </ScrollShadow>
         </div>
         <div className="flex justify-center">
