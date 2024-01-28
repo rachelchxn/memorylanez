@@ -10,8 +10,8 @@ interface Track {
 
 export default function Home() {
   const [userProfile, setUserProfile] = useState<any>(null);
-
   const [tracks, setTracks] = useState<Track[]>([]);
+  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     console.log(localStorage.getItem("providerAccessToken"));
@@ -31,24 +31,29 @@ export default function Home() {
       });
   }, []);
 
-  console.log(userProfile);
-
   const handleCreate = () => {
-    const imageUrl =
-      "https://wallpapers.com/images/featured/sad-boi-pictures-p17bwxvlc2ci55gw.jpg";
-    getVisionDescription(imageUrl).then((description) => {
-      getRecommedations(description.message.content as GLfloat);
-    });
+    // Assuming 'images' is an array and 'getVisionDescription' handles it accordingly
+    getVisionDescription(images)
+      .then((data) => {
+        // Assuming 'data' is a string that contains comma-separated values
+        const response = data.split(", ");
+        return getRecommendations(parseFloat(response[0]));
+      })
+      .catch((error) => {
+        // Always good to have a catch for any errors in the promise chain
+        console.error("Error in processing: ", error);
+      });
   };
 
-  const getVisionDescription = async (imageUrl: string) => {
+  const getVisionDescription = async (imageUrls: string[]) => {
+    console.log(imageUrls);
     try {
       const response = await fetch("/api/vision", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ image_url: imageUrl }),
+        body: JSON.stringify({ image_urls: imageUrls }),
       });
 
       if (!response.ok) {
@@ -56,15 +61,15 @@ export default function Home() {
       }
 
       const data = await response.json();
+      console.log(data);
       return data;
     } catch (error) {
       console.error("Error fetching vision description:", error);
     }
   };
 
-  const getRecommedations = async (valence: GLfloat) => {
-    console.log("hi!");
-
+  const getRecommendations = async (valence: GLfloat) => {
+    console.log(valence);
     const token = localStorage.getItem("providerAccessToken");
 
     fetch("/api/recommendations", {
@@ -99,6 +104,16 @@ export default function Home() {
 
   return (
     <main className="w-[430px] h-[932px] flex flex-col justify-center items-center bg-slate-100">
+      <div className="grid grid-cols-3 gap-4">
+        {images.map((url, index) => (
+          <img
+            key={index}
+            src={url}
+            alt={`Uploaded ${index}`}
+            className="w-full h-auto object-cover"
+          />
+        ))}
+      </div>
       <input
         type="file"
         name="userUpload"
@@ -117,6 +132,7 @@ export default function Home() {
               .single();
 
             let images_uploaded = [] as string[];
+            let newImages = [];
 
             for (let i = 0; i < event.target.files.length; i++) {
               const file = event.target.files[i];
@@ -135,14 +151,10 @@ export default function Home() {
                 .from(`user_uploads/${userProfile.id}/${data.id}`)
                 .getPublicUrl(i.toString());
               images_uploaded.push(pubUrlData.publicUrl);
-              // await supabase
-              //   .from("albums")
-              //   .upsert({
-              //     face_image: "face_images/" + userProfile.id + ".png",
-              //     spotify_username: userProfile.id,
-              //   })
+              newImages.push(pubUrlData.publicUrl);
             }
-            console.log(images_uploaded);
+            setImages([...images, ...newImages]);
+            console.log(images);
 
             const { data: completeData, error: completeError } = await supabase
               .from("albums")
@@ -160,8 +172,19 @@ export default function Home() {
               console.log(completeError);
               return;
             }
-          }
-        }}
+
+            console.log(userProfile)
+            const res = fetch("/api/compare_faces", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                photo_album_id: completeData.id,
+                user_id: userProfile.id,
+              }),
+            });
+          }}}
       />
 
       <button onClick={handleCreate}>Create Album</button>

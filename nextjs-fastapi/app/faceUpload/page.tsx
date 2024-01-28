@@ -3,7 +3,7 @@
 import { supabase } from "@/db";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import { Button } from "@nextui-org/react";
 import Image from "next/image";
 import orange from "../../public/circle.png";
@@ -79,9 +79,12 @@ export default function Home() {
     <main className="flex justify-center bg-bgbeige min-h-screen">
       <div className="relative max-w-lg flex-col ustify-center w-full h-screen bg-photoalbum px-10 py-64 overflow-hidden">
         <div className="flex justify-center z-10">
-          <Button onClick={() => router.push('/camera')} className="w-64 h-64 bg-placeholder rounded-full mb-5">
+          <Button
+            onClick={() => router.push("/camera")}
+            className="w-64 h-64 bg-placeholder rounded-full mb-5"
+          >
             <div className="flex justify-center p-28">
-              <PhotoCameraIcon className="text-burnt"/>
+              <PhotoCameraIcon className="text-burnt" />
             </div>
           </Button>
         </div>
@@ -105,8 +108,8 @@ export default function Home() {
               }
 
               const { data } = supabase.storage
-              .from("face_images")
-              .getPublicUrl(userProfile.id);
+                .from("face_images")
+                .getPublicUrl(userProfile.id);
               await supabase.from("users").upsert({
                 face_image_path: "face_images" + "/" + userProfile.id,
                 face_image: data.publicUrl,
@@ -116,7 +119,9 @@ export default function Home() {
             }
           }}
         />
-        <p className="text-center text-burnt m-5 relative z-10">Please upload a photo of yourself.</p>
+        <p className="text-center text-burnt m-5 relative z-10">
+          Please upload a photo of yourself.
+        </p>
         <div className="flex flex-col justify-center items-center gap-2">
           {tracks &&
             tracks.map((track) => (
@@ -130,10 +135,10 @@ export default function Home() {
             ))}
         </div>
         <div className="-m-[24rem] -z-20">
-          <Image width={2000} src={orange} alt=""/>
+          <Image width={2000} src={orange} alt="" />
         </div>
         <div className="-my-[72rem] ml-0 -mr-[30rem] -z-10">
-          <Image width={1500} src={pink} alt=""/>
+          <Image width={1500} src={pink} alt="" />
         </div>
       </div>
     </main>

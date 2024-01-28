@@ -7,8 +7,11 @@ import requests
 import os
 import base64
 import json
-
-from openai import OpenAI
+from db import supabase
+import io
+from PIL import Image
+import face_recognition
+import numpy as np
 
 load_dotenv()
 
@@ -19,11 +22,90 @@ client_secret = os.getenv("CLIENT_SECRET")
 
 app = FastAPI()
 
-# @app.get("/api/python")
-# def hello_world():
-#     data, count = supabase.table('test').insert([{"name": "test"}]).execute()
-#     print(data, count)
-#     return {"message": "Hello World"}
+# given a album id, obtain all of the faces that belong to the album
+def get_photo_album_images(user_id: str, photo_album_id: int) -> List[str]:
+    photo_names = supabase.storage.from_("user_uploads").list(path=user_id + "/" + str(photo_album_id - 1))
+
+    album_images = []
+    for photo_name in photo_names:
+        photo_path = user_id + "/" + str(photo_album_id - 1) + "/" + photo_name["name"]
+        file = supabase.storage.from_("user_uploads").download(photo_path)
+        with open("files/albums/" + photo_name["name"], "wb") as f:
+            f.write(file)
+            imageFileObj = open("files/albums/" + photo_name["name"], "rb")
+            imageBinaryBytes = imageFileObj.read()
+            imageStream = io.BytesIO(imageBinaryBytes)
+            imageFile = Image.open(imageStream)
+            newImageFile = imageFile.convert("RGB")
+
+            album_images.append(newImageFile)
+
+    return album_images
+
+
+def get_faces():
+    faces_names = supabase.storage.from_("user_faces").list("files")
+    face_images = []
+    for photo_name in faces_names:
+        if photo_name["name"] == ".emptyFolderPlaceholder":
+            continue
+        photo_path = "files/" + photo_name["name"]
+        file = supabase.storage.from_("user_faces").download(photo_path)
+        with open("files/faces/" + photo_name["name"], "wb") as f:
+            f.write(file)
+            imageFileObj = open("files/faces/" + photo_name["name"], "rb")
+            imageBinaryBytes = imageFileObj.read()
+            imageStream = io.BytesIO(imageBinaryBytes)
+            imageFile = Image.open(imageStream)
+            newImageFile = imageFile.convert("RGB")
+
+            face_images.append(newImageFile)
+    return face_images
+
+@app.post("/api/compare_faces")
+async def compare_faces(request: Request):
+    body = await request.json()
+
+    photo_album_id = body.get("photo_album_id")
+    user_id = body.get("user_id")
+    # print(photo_album_id, user_id)
+    album_photos = get_photo_album_images(user_id, photo_album_id)
+    print("got album images")
+    print("album photos", album_photos)
+
+    faces = get_faces()
+    print("got faces")
+
+    for i, face in enumerate(faces):
+        face.save("files/pil_faces/" + str(i) + ".png")
+    print("saved pil faces")
+
+    for i, album_photo in enumerate(album_photos):
+        album_photo.save("files/pil_albums/" + str(i) + ".png")
+
+    face_encodings = []
+    for i, face in enumerate(faces):
+        img = face_recognition.load_image_file("files/pil_faces/" + str(i) + ".png")
+        encoding = face_recognition.face_encodings(img)[0]
+        face_encodings.append(encoding)
+    print(face_encodings)
+
+    results = []
+    for i, album in enumerate(album_photos):
+        img = face_recognition.load_image_file("files/pil_albums/" + str(i) + ".png")
+        encoding = face_recognition.face_encodings(img)[0]
+        results = face_recognition.compare_faces(face_encodings, encoding)
+    print(results)
+
+
+
+
+
+@app.get("/api/python")
+def hello_world():
+    data, count = supabase.table('test').insert([{"name": "test"}]).execute()
+    print(data, count)
+    return {"message": "Hello World"}
 
 @app.post("/api/get_profile")
 async def get_profile(request: Request):
@@ -135,32 +217,35 @@ def create_playlist(user_id: str, token: str, name: str, public: bool = True, de
     return response.json()
 
 
+
 @app.post("/api/vision")
 async def describe_image(request: Request):
     body = await request.json()
-    image_url = body.get("image_url")
-    print(image_url)
+    image_urls = body.get("image_urls")
 
-    if not image_url:
-        raise HTTPException(status_code=400, detail="Image URL is missing")
+    if not image_urls:
+        raise HTTPException(status_code=400, detail="Image URLs are missing")
+
+    if not isinstance(image_urls, list):
+        raise HTTPException(status_code=400, detail="image_urls must be a list")
+
+    # Build the content list with text and image URLs
+    content_list = [{
+        "type": "text",
+        "text": "Rate all the images on a scale from 0.0 to 1.0 describing the positiveness conveyed in the images. The higher the more positive (e.g. happy, cheerful, euphoric), and the lower the more negative (e.g. sad, depressed, angry). Next, give the collection of images a title. Only give 1 value and 1 title for all of the images listed. Give your response in the format following this example: 0.5, A Walk in the Forest"
+    }] + [{"type": "image_url", "image_url": {"url": url}} for url in image_urls]
+
+    # Create a message with the built content list
+    messages = [{"role": "user", "content": content_list}]
+    print(messages)
 
     try:
         response = client.chat.completions.create(
-        model="gpt-4-vision-preview",
-        messages=[
-                {
-                    "role": "user",
-                    "content": "Rate the image on a scale from 0.0 to 1.0 describing the positiveness conveyed by the image. The higher the more positive (e.g. happy, cheerful, euphoric), and the lower the more negative (e.g. sad, depressed, angry). Only answer with the number rating, no other words or punctuation.",
-                },
-                {
-                    "role": "user",
-                    "content": image_url,
-                },
-            ],
+            model="gpt-4-vision-preview",
+            messages=messages,
             max_tokens=30,
         )
-        print(response.choices[0])
-        return response.choices[0]
+        return response.choices[0].message.content
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -172,6 +257,4 @@ print("hi!")
 print(get_token())
 
 # # print(create_playlist("yku0io7ib9xoq0iakf7i56zjj", "testy test"))
-
-# print(add_tracks_to_playlist("4ADsGrKrtqZhdvbE5YBWpB", "BQBvA2Zfoqpzc5m9fK0y8kqG_J58pf7mCtk8t-W8gbqV0qzh_eZoacUqgQ1tm7xNFM9-djp3WLEIKBBIRNnZLO3nXINJdaEqeB-Ua5cPxMsNRJB5WY9boJr9pczD_zmAbKXt4wejvbKMhM18inG4NGuez-008GqVEwgtoIiJ8FQft2Em2VCGLK4k7Y1tAGCw4EctViIj4MxokZ8o0T7Ioqu6PKhwbUG5-xGyJ3qbzn2XMF-3zm14R5GvD0omKTY1jca_dmTP4Ulhnr207IA", ["spotify:track:7CyPwkp0oE8Ro9Dd5CUDjW"]))
 
