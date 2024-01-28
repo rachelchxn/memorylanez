@@ -3,7 +3,7 @@
 import { supabase } from "@/db";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import AddIcon from '@mui/icons-material/Add';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import { Button } from "@nextui-org/react";
 import Image from "next/image";
 import orange from "../../public/circle.png";
@@ -79,9 +79,9 @@ export default function Home() {
     <main className="flex justify-center bg-bgbeige min-h-screen">
       <div className="relative max-w-lg flex-col ustify-center w-full h-screen bg-photoalbum px-10 py-64 overflow-hidden">
         <div className="flex justify-center z-10">
-          <Button className="w-64 h-64 bg-placeholder rounded-full mb-5">
+          <Button onClick={() => router.push('/camera')} className="w-64 h-64 bg-placeholder rounded-full mb-5">
             <div className="flex justify-center p-28">
-              <AddIcon className="text-burnt"/>
+              <PhotoCameraIcon className="text-burnt"/>
             </div>
           </Button>
         </div>
