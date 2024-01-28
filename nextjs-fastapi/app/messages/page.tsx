@@ -18,8 +18,12 @@ export default function Library() {
 
   const [albums, setAlbums] = useState<any[]>([]);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [invitations, setInvitations] = useState<any>(null);
+  const [fromUserProfile, setFromUserProfile] = useState<any>(null);
+  const [faceImageUrl, setFaceImageUrl] = useState<any>(null);
 
   useEffect(() => {
+
     fetch("/api/get_profile", {
       method: "POST",
       headers: {
@@ -35,6 +39,39 @@ export default function Library() {
         setUserProfile(data);
       });
   }, []);
+
+  useEffect(() => {
+    if (!userProfile) return;
+    async function wassupReconnections() {
+      const { data, error } = await supabase
+        .from("invites")
+        .select(`*`) //WTF IS GOING ON I HATE SQL
+        .eq("spotify_username_to", userProfile.display_name)
+        .maybeSingle();
+      if (!data) {
+        console.log(error);
+        return;
+      }
+
+      const { data: user, error: userError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("spotify_username", data.spotify_username_from)
+        .single();
+
+      setFromUserProfile(user);
+
+      console.log(user);
+      if (!user) {
+        console.log(userError);
+        return;
+      }
+      setFaceImageUrl(user.face_image);
+    }
+
+    wassupReconnections()
+
+  }, [userProfile, setFaceImageUrl])
 
   useEffect(() => {
     if (userProfile && userProfile.id) {
@@ -66,6 +103,8 @@ export default function Library() {
     }
   };
 
+  console.log(fromUserProfile, faceImageUrl)
+
   return (
     <main className="flex justify-center bg-bgbeige min-h-screen">
       <div className="relative max-w-lg flex-col justify-center w-full h-screen bg-photoalbum px-10 py-10 overflow-hidden">
@@ -82,7 +121,7 @@ export default function Library() {
             className="relative max-h-carousel w-full"
           >
             {albums.map((album) => (
-              <Link href={`/albums/${album.id}`}>
+              <Link key={album.id} href={`/albums/${album.id}`}>
                 <div
                   key={album}
                   className="w-[100%] p-4 flex gap-4 mb-4 rounded-lg"
