@@ -2,8 +2,8 @@
 
 import { supabase } from "@/db";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import { AddAlarmTwoTone } from "@mui/icons-material";
+import { useRouter } from "next/navigation";
+import { Button } from "@nextui-org/react";
 
 interface Track {
   id: string;
@@ -15,6 +15,7 @@ export default function Home() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [images, setImages] = useState<string[]>([]);
   const [trackIds, setTrackIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean[]>([]);
 
   const router = useRouter();
 
@@ -36,37 +37,49 @@ export default function Home() {
       });
   }, []);
 
-  const handleCreate = () => {
-    // Assuming 'images' is an array and 'getVisionDescription' handles it accordingly
-    getVisionDescription(images)
-      .then((data) => {
-        // Assuming 'data' is a string that contains comma-separated values
-        const response = data.split(", ");
-        getRecommendations(parseFloat(response[0]));
-        setTrackIds(tracks.map(track => track.id));
-      })
-      .then(() => {
-        uploadTrackIds(trackIds);
-      })
-      .catch((error) => {
-        // Always good to have a catch for any errors in the promise chain
-        console.error("Error in processing: ", error);
-      });
+  const handleCreate = async () => {
+    try {
+      const visionResponse = await getVisionDescription(images);
+      const valenceResponse = visionResponse.split(", ");
+      await getRecommendations(parseFloat(valenceResponse[0]));
+
+      // Update state and wait for the next render to ensure trackIds are updated
+      setTrackIds(tracks.map((track) => track.id));
+    } catch (error) {
+      console.error("Error in processing: ", error);
+      return; // Early exit on error
+    }
+
+    // Use useEffect to respond to trackIds change
   };
 
-  const uploadTrackIds = async(trackIds: string[]) => {
-    const { data, error }= await supabase.from("albums")
-      .upsert(
-        {
-          owner: userProfile.id,
-          tracks: trackIds,
-        },
-        {}
-      )
-      .select()
-      .single();
-    router.push('/album/'+ data.id);
-  }
+  useEffect(() => {
+    if (trackIds.length > 0) {
+      uploadTrackIds(trackIds);
+    }
+  }, [trackIds]); // Depend on trackIds
+
+  const uploadTrackIds = async (trackIds: string[]) => {
+    try {
+      const { data, error } = await supabase
+        .from("albums")
+        .upsert(
+          {
+            owner: userProfile.id,
+            tracks: trackIds,
+          },
+          {}
+        )
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      router.push("/album/" + data.id);
+    } catch (error) {
+      console.error("Error in uploading track IDs: ", error);
+    }
+  };
 
   const getVisionDescription = async (imageUrls: string[]) => {
     console.log(imageUrls);
@@ -126,92 +139,109 @@ export default function Home() {
   };
 
   return (
-    <main className="w-[430px] h-[932px] flex flex-col justify-center items-center bg-slate-100">
-      <div className="grid grid-cols-3 gap-4">
-        {images.map((url, index) => (
-          <img
-            key={index}
-            src={url}
-            alt={`Uploaded ${index}`}
-            className="w-full h-auto object-cover"
-          />
-        ))}
-      </div>
-      <input
-        type="file"
-        name="userUpload"
-        multiple
-        onChange={async (event) => {
-          if (event.target.files && userProfile) {
-            const { data, error } = await supabase
-              .from("albums")
-              .upsert(
-                {
-                  owner: userProfile.id,
-                },
-                {}
-              )
-              .select()
-              .single();
+    <main className="flex justify-center bg-bgbeige min-h-screen">
+      <div className="relative max-w-lg flex-col justify-center w-full h-screen bg-photoalbum px-10 py-10 overflow-hidden">
+        <div className="h-[100%]">
+          <div className="grid grid-cols-3 gap-4 p-4 bg-[#ede7e2] h-[50%] mb-8">
+            {images.map((url, index) => (
+              <img
+                key={index}
+                src={url}
+                alt={`Uploaded ${index}`}
+                className="w-full h-auto object-cover"
+              />
+            ))}
+          </div>
+          <input
+            type="file"
+            name="userUpload"
+            className="absolute"
+            multiple
+            onChange={async (event) => {
+              if (event.target.files && userProfile) {
+                const { data, error } = await supabase
+                  .from("albums")
+                  .upsert(
+                    {
+                      owner: userProfile.id,
+                    },
+                    {}
+                  )
+                  .select()
+                  .single();
 
-            let images_uploaded = [] as string[];
-            let newImages = [];
+                let images_uploaded = [] as string[];
+                let newImages = [];
 
-            for (let i = 0; i < event.target.files.length; i++) {
-              const file = event.target.files[i];
-              const res = await supabase.storage
-                .from(`user_uploads/${userProfile.id}/${data.id}`)
-                .upload(i.toString(), file, {
-                  cacheControl: "3600",
-                  upsert: false,
-                });
-              if (res.error) {
-                console.log(res.error);
-                return;
+                for (let i = 0; i < event.target.files.length; i++) {
+                  const file = event.target.files[i];
+                  const res = await supabase.storage
+                    .from(`user_uploads/${userProfile.id}/${data.id}`)
+                    .upload(i.toString(), file, {
+                      cacheControl: "3600",
+                      upsert: false,
+                    });
+                  if (res.error) {
+                    console.log(res.error);
+                    return;
+                  }
+                  console.log("Uploaded file to object storage:", res);
+                  const { data: pubUrlData } = await supabase.storage
+                    .from(`user_uploads/${userProfile.id}/${data.id}`)
+                    .getPublicUrl(i.toString());
+                  images_uploaded.push(pubUrlData.publicUrl);
+                  newImages.push(pubUrlData.publicUrl);
+                }
+                setImages([...images, ...newImages]);
+                console.log(images);
+
+                const { data: completeData, error: completeError } =
+                  await supabase
+                    .from("albums")
+                    .upsert(
+                      {
+                        images: images_uploaded,
+                        owner: userProfile.id,
+                      },
+                      {}
+                    )
+                    .select()
+                    .single();
+
+                if (completeError) {
+                  console.log(completeError);
+                  return;
+                }
               }
-              console.log("Uploaded file to object storage:", res);
-              const { data: pubUrlData } = await supabase.storage
-                .from(`user_uploads/${userProfile.id}/${data.id}`)
-                .getPublicUrl(i.toString());
-              images_uploaded.push(pubUrlData.publicUrl);
-              newImages.push(pubUrlData.publicUrl);
-            }
-            setImages([...images, ...newImages]);
-            console.log(images);
+            }}
+          />
 
-            const { data: completeData, error: completeError } = await supabase
-              .from("albums")
-              .upsert(
-                {
-                  images: images_uploaded,
-                  owner: userProfile.id,
-                },
-                {}
-              )
-              .select()
-              .single();
+          <Button
+            className="text-lg py-6 px-6 w-[100%] mt-20 "
+            onClick={handleCreate}
+          >
+            Create Album
+          </Button>
+        </div>
 
-            if (completeError) {
-              console.log(completeError);
-              return;
-            }
-          }
-        }}
-      />
-
-      <button onClick={handleCreate}>Create Album</button>
-
-      <div className="flex flex-col justify-center items-center gap-2">
-        {tracks &&
-          tracks.map((track) => (
-            <iframe
-              key={track.id}
-              src={`https://open.spotify.com/embed/track/${track.id}`}
-              width="300"
-              height="80"
-              allow="encrypted-media"
-            ></iframe>
-          ))}
+        <div className="flex flex-col justify-center items-center gap-2">
+          {tracks &&
+            tracks.map((track) => (
+              <iframe
+                key={track.id}
+                src={`https://open.spotify.com/embed/track/${track.id}`}
+                width="300"
+                height="80"
+                allow="encrypted-media"
+              ></iframe>
+            ))}
+        </div>
+        {/* <div className="-m-[64rem] -z-30">
+          <Image width={2000} src={orange} alt="" />
+        </div>
+        <div className="-my-[105rem] ml-0 -mr-[10rem] -z-10">
+          <Image width={1500} src={pink} alt="" />
+        </div> */}
       </div>
     </main>
   );

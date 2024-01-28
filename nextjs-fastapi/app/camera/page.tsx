@@ -69,7 +69,7 @@ export default function Camera() {
     userProfile: { id: any },
     file: any
   ) => {
-    // Upload the image to Supabase Storage
+    console.log("TRYING TO SEND TO DB");
     const uploadResponse = await supabase.storage
       .from("face_images")
       .upload(`user_faces/${userProfile.id}`, file, {
