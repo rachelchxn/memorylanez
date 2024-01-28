@@ -7,8 +7,11 @@ import requests
 import os
 import base64
 import json
-
-from openai import OpenAI
+from db import supabase
+import io
+from PIL import Image
+import face_recognition
+import numpy as np
 
 load_dotenv()
 
@@ -19,11 +22,90 @@ client_secret = os.getenv("CLIENT_SECRET")
 
 app = FastAPI()
 
-# @app.get("/api/python")
-# def hello_world():
-#     data, count = supabase.table('test').insert([{"name": "test"}]).execute()
-#     print(data, count)
-#     return {"message": "Hello World"}
+# given a album id, obtain all of the faces that belong to the album
+def get_photo_album_images(user_id: str, photo_album_id: int) -> List[str]:
+    photo_names = supabase.storage.from_("user_uploads").list(path=user_id + "/" + str(photo_album_id - 1))
+
+    album_images = []
+    for photo_name in photo_names:
+        photo_path = user_id + "/" + str(photo_album_id - 1) + "/" + photo_name["name"]
+        file = supabase.storage.from_("user_uploads").download(photo_path)
+        with open("files/albums/" + photo_name["name"], "wb") as f:
+            f.write(file)
+            imageFileObj = open("files/albums/" + photo_name["name"], "rb")
+            imageBinaryBytes = imageFileObj.read()
+            imageStream = io.BytesIO(imageBinaryBytes)
+            imageFile = Image.open(imageStream)
+            newImageFile = imageFile.convert("RGB")
+
+            album_images.append(newImageFile)
+
+    return album_images
+
+
+def get_faces():
+    faces_names = supabase.storage.from_("user_faces").list("files")
+    face_images = []
+    for photo_name in faces_names:
+        if photo_name["name"] == ".emptyFolderPlaceholder":
+            continue
+        photo_path = "files/" + photo_name["name"]
+        file = supabase.storage.from_("user_faces").download(photo_path)
+        with open("files/faces/" + photo_name["name"], "wb") as f:
+            f.write(file)
+            imageFileObj = open("files/faces/" + photo_name["name"], "rb")
+            imageBinaryBytes = imageFileObj.read()
+            imageStream = io.BytesIO(imageBinaryBytes)
+            imageFile = Image.open(imageStream)
+            newImageFile = imageFile.convert("RGB")
+
+            face_images.append(newImageFile)
+    return face_images
+
+@app.post("/api/compare_faces")
+async def compare_faces(request: Request):
+    body = await request.json()
+
+    photo_album_id = body.get("photo_album_id")
+    user_id = body.get("user_id")
+    # print(photo_album_id, user_id)
+    album_photos = get_photo_album_images(user_id, photo_album_id)
+    print("got album images")
+    print("album photos", album_photos)
+
+    faces = get_faces()
+    print("got faces")
+
+    for i, face in enumerate(faces):
+        face.save("files/pil_faces/" + str(i) + ".png")
+    print("saved pil faces")
+
+    for i, album_photo in enumerate(album_photos):
+        album_photo.save("files/pil_albums/" + str(i) + ".png")
+
+    face_encodings = []
+    for i, face in enumerate(faces):
+        img = face_recognition.load_image_file("files/pil_faces/" + str(i) + ".png")
+        encoding = face_recognition.face_encodings(img)[0]
+        face_encodings.append(encoding)
+    print(face_encodings)
+
+    results = []
+    for i, album in enumerate(album_photos):
+        img = face_recognition.load_image_file("files/pil_albums/" + str(i) + ".png")
+        encoding = face_recognition.face_encodings(img)[0]
+        results = face_recognition.compare_faces(face_encodings, encoding)
+    print(results)
+
+
+
+
+
+@app.get("/api/python")
+def hello_world():
+    data, count = supabase.table('test').insert([{"name": "test"}]).execute()
+    print(data, count)
+    return {"message": "Hello World"}
 
 @app.post("/api/get_profile")
 async def get_profile(request: Request):
@@ -61,12 +143,13 @@ def get_token():
 @app.post("/api/recommendations")
 async def get_recommendations(request: Request):
     body = await request.json()
-    token = body.get("token")
+    # token = body.get("token")
+    token = get_token()
     print("token", token)
     if not token:
         raise HTTPException(status_code=400, detail="Token is missing")
 
-    url = "https://api.spotify.com/v1/recommendations?seed_artists=4NHQUGzhtTLFvgF5SZesLK&seed_genres=classical%2Ccountry&seed_tracks=0c6xIDDpzE81m2q797ordA&limit=5"
+    url = "https://api.spotify.com/v1/recommendations?seed_genres=classical%2Ccountry&seed_tracks=0c6xIDDpzE81m2q797ordA&limit=5"
     headers = {
         "Authorization": "Bearer " + token
     }
@@ -140,7 +223,7 @@ async def describe_image(request: Request):
         )
         print(response.choices[0])
         return response.choices[0]
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

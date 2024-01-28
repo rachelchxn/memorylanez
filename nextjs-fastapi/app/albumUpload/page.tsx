@@ -101,6 +101,18 @@ export default function Home() {
               console.log(completeError);
               return;
             }
+
+            console.log(userProfile)
+            const res = fetch("/api/compare_faces", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                photo_album_id: completeData.id,
+                user_id: userProfile.id,
+              }),
+            });
           }}}
       />
 

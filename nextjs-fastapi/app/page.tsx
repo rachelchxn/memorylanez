@@ -37,18 +37,14 @@ export default function Home() {
   }, [router]);
 
   useEffect(() => {
-    if (!selectedImage) return;
-    // image upload snippet
-    // supabase.storage.from("imageslol").upload("my-image.png", selectedImage, {
-    //   cacheControl: "3600",
-    //   upsert: false,
-    // }).then((response) => {
-    //   if (response.error) {
-    //     console.log(response.error);
-    //   }
-    //   console.log("Uploaded file to object storage:", response);
-    // });
-  }, [selectedImage]);
+
+    fetch("api/python", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    })
+  }, []);
 
   return (
     <main className="w-[430px] h-[932px] flex justify-center items-center bg-slate-100">
