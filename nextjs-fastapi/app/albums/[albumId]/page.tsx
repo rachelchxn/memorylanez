@@ -69,17 +69,19 @@ export default function Album({ params }: { params: { albumId: string } }) {
     <main className="flex justify-center bg-bgbeige min-h-screen">
       <div className="relative max-w-lg flex-col w-full h-screen px-10 py-[24rem] overflow-hidden">
         <div className="relative z-10">
-          {tracks &&
-            tracks.map((track) => (
-              <iframe
-                key={track.id}
-                src={`https://open.spotify.com/embed/track/${track}`}
-                width="300"
-                height="80"
-                allow="encrypted-media"
-                style={{ backgroundColor: "#e3d8cd "}}
-              ></iframe>
-            ))}
+            {tracks &&
+              tracks.map((track) => (
+                <div className="flex justify-center">
+                  <iframe
+                    key={track.id}
+                    src={`https://open.spotify.com/embed/track/${track}`}
+                    allow="encrypted-media"
+                    height="80"
+                    width="300"
+                    className="rounded-xl my-3"
+                  ></iframe>
+                </div>
+              ))}
         </div>
         <div className="-m-[32rem] -z-20">
           <Image width={2000} src={orange} alt="" />
